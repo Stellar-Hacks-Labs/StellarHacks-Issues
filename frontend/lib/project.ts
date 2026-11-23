@@ -313,3 +313,13 @@ export async function cardsOf(contractId: string): Promise<Record<number, Card>>
 
   return cards;
 }
+
+/**
+ * The id a moderation report uses for this project.
+ *
+ * Hiding the project never deletes the row this id points at. The result
+ * list still contains it; the page shows a notice instead of the write-up.
+ */
+export function projectReportTarget(contractId: string, teamId: number): { type: "project"; id: string } {
+  return { type: "project", id: `${contractId}:${teamId}` };
+}

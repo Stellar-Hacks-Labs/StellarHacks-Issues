@@ -8,6 +8,8 @@ import { findHackathon } from "../../../../../lib/chain";
 import { entriesOf } from "../../../../../lib/submissions";
 import { membersOf, projectOf, type Member } from "../../../../../lib/project";
 import { titleOf } from "../../../../../lib/words";
+import { ReportButton } from "../../../../components/report-button";
+import { projectReportTarget } from "../../../../../lib/project";
 
 /**
  * One project, laid out the way somebody reads one.
@@ -239,6 +241,8 @@ export default async function ProjectPage({
           </div>
         </div>
       </Measure>
+    
+      <ReportButton targetType="project" targetId={projectReportTarget(hackathon.contract_id, teamId).id} />
     </main>
   );
 }

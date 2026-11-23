@@ -205,3 +205,13 @@ export function providerPicture(meta: Record<string, unknown> | undefined): stri
 
   return null;
 }
+
+/**
+ * The id a moderation report uses for this profile.
+ *
+ * A hidden profile is a notice on the page. The account and the hackathons
+ * it joined are unchanged, because those were not written by the report.
+ */
+export function profileReportTarget(username: string): { type: "profile"; id: string } {
+  return { type: "profile", id: username };
+}

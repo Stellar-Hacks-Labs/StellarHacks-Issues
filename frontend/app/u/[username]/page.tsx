@@ -7,6 +7,8 @@ import { Mark, type Where } from "../../components/marks";
 import { currentUser } from "../../../lib/supabase/server";
 import { nameOf, profileNamed, type Profile } from "../../../lib/profile";
 import { flagOf, placeOf } from "../../../lib/countries";
+import { ReportButton } from "../../components/report-button";
+import { profileReportTarget } from "../../../lib/profile";
 
 /**
  * Somebody, at an address you can send to a person.
@@ -123,6 +125,8 @@ export default async function PublicProfile({ params }: PageProps<"/u/[username]
           </Panel>
         )}
       </Measure>
+    
+      <ReportButton targetType="profile" targetId={profileReportTarget(profile.username).id} />
     </main>
   );
 }

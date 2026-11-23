@@ -1,3 +1,4 @@
+/** Artwork is reported from the project page, once, rather than from the deck and the video separately. Two buttons would file two reports about one project. */
 "use client";
 
 import { useRef, useState } from "react";
