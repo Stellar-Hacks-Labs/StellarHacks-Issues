@@ -61,7 +61,7 @@ fn the_canonical_constitution_serializes_to_the_bytes_both_languages_expect() {
     let constitution = canonical_constitution(&env);
 
     assert_eq!(
-        hex_of(&constitution.to_xdr(&env)),
+        hex_of(&constitution.clone().to_xdr(&env)),
         fixture!("constitution.xdr.hex")
     );
 }

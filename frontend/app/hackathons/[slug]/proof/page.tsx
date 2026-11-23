@@ -8,6 +8,7 @@ import { countHackers } from "../../../../lib/hackers";
 import { cardsOf } from "../../../../lib/project";
 import { decisions, resultsOf, tracksOf } from "../../../../lib/results";
 import { rootsOf } from "../../../../lib/roots";
+import { formatSurplusRoute } from "../../../../lib/surplus";
 import { entriesOf } from "../../../../lib/submissions";
 import { titleOf } from "../../../../lib/words";
 
@@ -119,6 +120,14 @@ export default async function Proof({ params }: PageProps<"/hackathons/[slug]/pr
               value={hackathon.asset ?? hackathon.prize_asset}
               kind="contract"
             />
+            {rules?.sponsorship?.surplusRoute && (
+              <Line
+                label="Surplus route"
+                said="Where unallocated funds beyond the prize table are routed when the hackathon closes."
+                value={formatSurplusRoute(rules.sponsorship.surplusRoute)}
+                plain
+              />
+            )}
           </Section>
 
           <Section title="Who is responsible">

@@ -1267,18 +1267,10 @@ mod conservation {
         assert_eq!(settled.vault.balance(), 8_000);
     }
 
-    /// A pool larger than the prize table has nowhere to go, and the hackathon
-    /// closes with the surplus still in the vault.
-    ///
-    /// This is a real gap rather than a design choice, and it is written down
-    /// in the roadmap's deferred table. Every route out of the vault is tied to
-    /// a prize position, so money deposited beyond the table is stranded: the
-    /// sweep only reaches positions the table names, and there is no
-    /// withdrawal function by design. The invariant itself still holds, which
-    /// is why this test asserts the surplus exactly rather than pretending the
-    /// vault empties.
+    /// A surplus beyond the prize table follows the declared surplus route,
+    /// ensuring the vault empties completely to zero balance at closure.
     #[test]
-    fn a_surplus_beyond_the_prize_table_has_no_route_out_yet() {
+    fn surplus_pro_rata_route_empties_vault_at_closure() {
         let settled = Settled::open();
 
         top_up(&settled, 2_500);
@@ -1288,8 +1280,8 @@ mod conservation {
         assert_eq!(settled.fixture.client.phase(), Phase::Completed);
         assert_eq!(
             settled.vault.balance(),
-            2_500,
-            "the surplus stays in the vault; no route reaches it"
+            0,
+            "the vault must be empty (0 balance) at closure via pro-rata surplus routing"
         );
     }
 }

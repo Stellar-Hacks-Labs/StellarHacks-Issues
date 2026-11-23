@@ -230,6 +230,13 @@ export function project(events: readonly ProjectedEvent[], reads: readonly Store
         pay(payments, contract, event, text(field["track"]), organizerOf(state, contract), PaymentKind.Swept);
         break;
 
+      case "SurplusRouted": {
+        const route = field["route"] as { tag: string; values?: [string] } | undefined;
+        const recipient = route && route.values ? route.values[0] : organizerOf(state, contract);
+        pay(payments, contract, event, "surplus", recipient ?? "", PaymentKind.Returned);
+        break;
+      }
+
       default:
         // Everything else is recorded in `chain_events` and shapes no derived
         // row. An event this build does not recognise is not dropped, because

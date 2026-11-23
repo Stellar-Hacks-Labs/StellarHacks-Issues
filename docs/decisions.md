@@ -550,6 +550,27 @@ voter reveal the half that suited them. `reveal_ballot` takes the list,
 `team_id` to `choices`. No ballot already sealed could be carried across: the
 total it was meant to place was never part of what its voter signed.
 
+## 26. Undirected surplus beyond the prize table follows a declared constitution route
+
+**PRD said** every deposit enters the prize table. A pool exceeding the table
+had no route out, asserted by `a_surplus_beyond_the_prize_table_has_no_route_out_yet`.
+
+**We decided** the constitution binds an explicit `SurplusRoute` before locking:
+`ProRata` (top-up of winning positions in proportion to their prize amount),
+`Return(Address)` (refund to a declared address), or `Roll(Address)` (forward
+to a named next hackathon instance's vault).
+
+**Why.** When sponsors deposit directly into the vault beyond the declared prize
+table, funds were previously stranded forever at settlement because the contract
+had no withdrawal endpoint. Declaring the route in the constitution guarantees
+zero stranded funds at closure while preserving the immutable, audited rules
+participants and sponsors agreed to before hacking began.
+
+**Consequence.** At settlement `complete()`, `hackathon-core` queries the remaining
+balance of its bound `prize-vault`. If a surplus exists, it routes the funds
+according to the declared `SurplusRoute`, emitting `SurplusRouted` and ensuring
+the vault balance reaches zero at closure.
+
 ---
 
 ## Still open

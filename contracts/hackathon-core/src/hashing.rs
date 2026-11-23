@@ -101,7 +101,7 @@ fn digest(env: &Env, domain: &[u8], body: Bytes) -> BytesN<32> {
 mod test {
     use super::*;
     use crate::constitution::{
-        JudgingMode, ProjectVisibility, TieBreakRule, VotePolicy, CONSTITUTION_VERSION,
+        JudgingMode, ProjectVisibility, SurplusRoute, TieBreakRule, VotePolicy, CONSTITUTION_VERSION,
     };
     use crate::fixtures::{sample_constitution, sample_metadata, HOUR};
     use crate::submission::FieldRule;
@@ -217,6 +217,10 @@ mod test {
         let mut changed = base.clone();
         changed.schedule.submission_closes_at += HOUR;
         assert_ne!(hash_constitution(&env, &changed), original, "schedule");
+
+        let mut changed = base.clone();
+        changed.sponsorship.surplus_route = SurplusRoute::Return(Address::generate(&env));
+        assert_ne!(hash_constitution(&env, &changed), original, "surplus_route");
 
         let mut changed = base;
         changed.extensions.max_extensions_per_deadline = 3;
