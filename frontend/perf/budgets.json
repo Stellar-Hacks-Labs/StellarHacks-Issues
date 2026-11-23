@@ -1,0 +1,53 @@
+{
+  "$schema": "./budget-schema.ts",
+  "routes": {
+    "/": {
+      "javascript": "250kb",
+      "images": "500kb",
+      "lcp": "2.5s",
+      "description": "Landing page with hero animation"
+    },
+    "/hackathons": {
+      "javascript": "200kb",
+      "images": "300kb",
+      "lcp": "2.5s",
+      "description": "Hackathon listing with filters"
+    },
+    "/hackathons/[slug]": {
+      "javascript": "220kb",
+      "images": "400kb",
+      "lcp": "2.5s",
+      "description": "Hackathon detail page with tabs"
+    },
+    "/hackathons/[slug]/submit": {
+      "javascript": "280kb",
+      "images": "200kb",
+      "lcp": "2.5s",
+      "description": "Submission form with image upload"
+    },
+    "/hackathons/[slug]/vote": {
+      "javascript": "240kb",
+      "images": "250kb",
+      "lcp": "2.5s",
+      "description": "Voting ballot with project cards"
+    },
+    "/hackathons/[slug]/projects/[team]": {
+      "javascript": "300kb",
+      "images": "400kb",
+      "lcp": "2.5s",
+      "description": "Project detail with deck viewer (lazy loaded)"
+    },
+    "/statistics": {
+      "javascript": "280kb",
+      "images": "100kb",
+      "lcp": "2.5s",
+      "description": "Statistics dashboard (lazy loaded)"
+    },
+    "/u/[username]": {
+      "javascript": "180kb",
+      "images": "200kb",
+      "lcp": "2.5s",
+      "description": "User profile page"
+    }
+  }
+}
