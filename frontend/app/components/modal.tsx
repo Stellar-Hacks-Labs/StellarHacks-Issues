@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, type ReactNode } from "react";
+import { trapFocus } from "../../lib/focus-trap";
 
 /**
  * A panel that takes the page over until it is answered.
@@ -64,6 +65,9 @@ export function Modal({
       )?.focus();
     });
 
+    /* Trap focus within the modal so keyboard navigation stays inside. */
+    const releaseTrap = panel.current ? trapFocus(panel.current) : () => {};
+
     function key(event: KeyboardEvent) {
       if (event.key === "Escape") {
         onClose();
@@ -74,6 +78,7 @@ export function Modal({
 
     return () => {
       cancelAnimationFrame(focused);
+      releaseTrap();
       document.removeEventListener("keydown", key);
       document.body.style.overflow = overflow;
       document.body.style.paddingRight = paddingRight;

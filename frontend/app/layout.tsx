@@ -4,6 +4,7 @@ import { Archivo, Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
 import { Footer, Header } from "./components/chrome";
 import { NetworkNotice } from "./components/network-notice";
 import { WalletProvider } from "./components/wallet-context";
+import { SkipLink } from "./components/skip-link";
 import "./globals.css";
 
 /**
@@ -87,6 +88,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${display.variable} ${technical.variable} ${mono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col bg-paper text-ink">
+        <SkipLink />
         {/* Wraps everything, because the header and the account page both ask
             which wallet is connected and they are on opposite sides of this
             tree. Two copies of that answer could disagree, and a header naming
@@ -99,7 +101,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               on, which is a setting rather than an error, so it sits in the
               furniture and lets somebody carry on reading. */}
           <NetworkNotice />
-          {children}
+          <main id="main-content">
+            {children}
+          </main>
           <Footer />
         </WalletProvider>
       </body>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { PHASES } from "../../../lib/phase";
 import type { Rules } from "../../../lib/rules";
+import { CountdownLiveRegion } from "../../components/live-region";
 
 /**
  * Where a hackathon has got to, and how long the current stage has left.
@@ -189,17 +190,24 @@ export function Progress({ phase, rules }: { phase: number | null; rules: Rules 
 
         {/* The countdown, when the current stage has one. */}
         {left !== null && (
-          <p className="label shrink-0 text-[0.75rem] text-ink-soft">
-            {left > 0 ? (
-              <>
-                <span className="text-ink">{spoken(left)}</span> {deadlineName(phase)}
-              </>
-            ) : (
-              /* The deadline has gone but the contract has not been told. Said
-                 plainly, because the alternative is a page that looks stuck. */
-              <>Deadline passed &middot; waiting on the organizer</>
-            )}
-          </p>
+          <>
+            <p className="label shrink-0 text-[0.75rem] text-ink-soft" aria-hidden="true">
+              {left > 0 ? (
+                <>
+                  <span className="text-ink">{spoken(left)}</span> {deadlineName(phase)}
+                </>
+              ) : (
+                /* The deadline has gone but the contract has not been told. Said
+                   plainly, because the alternative is a page that looks stuck. */
+                <>Deadline passed &middot; waiting on the organizer</>
+              )}
+            </p>
+            <CountdownLiveRegion>
+              {left > 0 
+                ? `${spoken(left)} ${deadlineName(phase)}`
+                : "Deadline passed, waiting on the organizer"}
+            </CountdownLiveRegion>
+          </>
         )}
       </div>
     </section>
