@@ -1,0 +1,9 @@
+{
+  "ballot.title": "Topluluk Oylaması",
+  "ballot.points_remaining": "Kalan puanlar",
+  "ballot.allocate": "Puan tahsis et",
+  "ballot.submit": "Oy pusulasını gönder",
+  "ballot.already_voted": "Zaten oy kullandınız",
+  "ballot.not_eligible": "Oy kullanmaya uygun değilsiniz",
+  "ballot.invalid": "Geçersiz oy tahsisi"
+}

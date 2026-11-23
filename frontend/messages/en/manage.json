@@ -1,0 +1,13 @@
+{
+  "console.title": "Organizer Console",
+  "console.overview": "Overview",
+  "console.applications": "Applications",
+  "console.screening": "Screening",
+  "console.schedule": "Schedule",
+  "screening.approve": "Approve",
+  "screening.reject": "Reject",
+  "screening.pending": "Pending review",
+  "schedule.extend": "Extend deadline",
+  "schedule.reason": "Reason",
+  "schedule.submit": "Update schedule"
+}

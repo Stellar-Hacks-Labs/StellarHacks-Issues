@@ -1,0 +1,10 @@
+{
+  "proof.title": "Şeffaflık Kaydı",
+  "proof.rules": "Kural Özeti",
+  "proof.vault": "Ödül Kasası",
+  "proof.ranking": "Final Sıralaması",
+  "proof.payments": "Ödemeler",
+  "proof.verify": "Doğrula",
+  "proof.verified": "Doğrulandı",
+  "proof.does_not_match": "Eşleşmiyor"
+}

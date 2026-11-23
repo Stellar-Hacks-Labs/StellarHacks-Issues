@@ -1,0 +1,15 @@
+{
+  "console.title": "Judge Console",
+  "console.assigned": "Assigned Projects",
+  "console.scored": "Scored",
+  "console.pending": "Pending",
+  "ai_review.title": "AI Review",
+  "ai_review.analyze": "Analyze project",
+  "score.rubric": "Rubric",
+  "score.criterion": "Criterion",
+  "score.weight": "Weight",
+  "score.score": "Score",
+  "score.comments": "Comments",
+  "score.submit": "Submit scorecard",
+  "score.already_scored": "Already scored"
+}

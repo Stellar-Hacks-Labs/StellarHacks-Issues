@@ -1,0 +1,21 @@
+{
+  "masthead.phase": "Aşama",
+  "masthead.prize_pool": "Ödül Havuzu",
+  "masthead.participants": "Katılımcılar",
+  "masthead.deadline": "Son Tarih",
+  "tabs.overview": "Genel Bakış",
+  "tabs.prizes": "Ödüller",
+  "tabs.timeline": "Zaman Çizelgesi",
+  "tabs.rules": "Kurallar",
+  "tabs.projects": "Projeler",
+  "tabs.results": "Sonuçlar",
+  "register.title": "Kayıt Ol",
+  "register.apply": "Katılmak için başvur",
+  "register.already_applied": "Zaten başvurdunuz",
+  "register.pending": "Başvuru beklemede",
+  "register.approved": "Onaylandı",
+  "join.create_team": "Takım oluştur",
+  "join.join_team": "Takıma katıl",
+  "join.team_name": "Takım adı",
+  "join.members": "Üyeler"
+}

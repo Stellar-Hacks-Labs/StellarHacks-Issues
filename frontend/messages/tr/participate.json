@@ -1,0 +1,11 @@
+{
+  "submit.title": "Proje Gönder",
+  "submit.project_name": "Proje adı",
+  "submit.description": "Açıklama",
+  "submit.repository": "Depo URL'si",
+  "submit.demo": "Demo URL'si",
+  "submit.track": "Kategori",
+  "submit.submit_button": "Gönder",
+  "submit.already_submitted": "Zaten gönderildi",
+  "submit.deadline_passed": "Gönderim son tarihi geçti"
+}

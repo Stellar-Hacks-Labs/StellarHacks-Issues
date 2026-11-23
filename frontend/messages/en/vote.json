@@ -1,0 +1,9 @@
+{
+  "ballot.title": "Community Vote",
+  "ballot.points_remaining": "Points remaining",
+  "ballot.allocate": "Allocate points",
+  "ballot.submit": "Submit ballot",
+  "ballot.already_voted": "You have already voted",
+  "ballot.not_eligible": "You are not eligible to vote",
+  "ballot.invalid": "Invalid ballot allocation"
+}

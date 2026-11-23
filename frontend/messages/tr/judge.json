@@ -1,0 +1,15 @@
+{
+  "console.title": "Hakem Konsolu",
+  "console.assigned": "Atanan Projeler",
+  "console.scored": "Puanlandı",
+  "console.pending": "Beklemede",
+  "ai_review.title": "Yapay Zeka İncelemesi",
+  "ai_review.analyze": "Projeyi analiz et",
+  "score.rubric": "Rubrik",
+  "score.criterion": "Kriter",
+  "score.weight": "Ağırlık",
+  "score.score": "Puan",
+  "score.comments": "Yorumlar",
+  "score.submit": "Skor kartını gönder",
+  "score.already_scored": "Zaten puanlandı"
+}
