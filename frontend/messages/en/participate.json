@@ -1,0 +1,11 @@
+{
+  "submit.title": "Submit Project",
+  "submit.project_name": "Project name",
+  "submit.description": "Description",
+  "submit.repository": "Repository URL",
+  "submit.demo": "Demo URL",
+  "submit.track": "Track",
+  "submit.submit_button": "Submit",
+  "submit.already_submitted": "Already submitted",
+  "submit.deadline_passed": "Submission deadline has passed"
+}

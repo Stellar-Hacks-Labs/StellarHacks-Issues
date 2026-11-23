@@ -1,0 +1,10 @@
+{
+  "proof.title": "Transparency Record",
+  "proof.rules": "Rules Digest",
+  "proof.vault": "Prize Vault",
+  "proof.ranking": "Final Ranking",
+  "proof.payments": "Payments",
+  "proof.verify": "Verify",
+  "proof.verified": "Verified",
+  "proof.does_not_match": "Does not match"
+}

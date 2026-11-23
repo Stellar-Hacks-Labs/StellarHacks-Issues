@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "shoot": "node scripts/shoot.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "perf": "node --loader tsx perf/measure.mts",
+    "perf:lcp": "node --loader tsx perf/lcp.mts"
   },
   "dependencies": {
     "@creit.tech/stellar-wallets-kit": "^2.5.0",

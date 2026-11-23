@@ -1,0 +1,21 @@
+{
+  "masthead.phase": "Phase",
+  "masthead.prize_pool": "Prize Pool",
+  "masthead.participants": "Participants",
+  "masthead.deadline": "Deadline",
+  "tabs.overview": "Overview",
+  "tabs.prizes": "Prizes",
+  "tabs.timeline": "Timeline",
+  "tabs.rules": "Rules",
+  "tabs.projects": "Projects",
+  "tabs.results": "Results",
+  "register.title": "Register",
+  "register.apply": "Apply to participate",
+  "register.already_applied": "You have already applied",
+  "register.pending": "Application pending",
+  "register.approved": "Approved",
+  "join.create_team": "Create a team",
+  "join.join_team": "Join a team",
+  "join.team_name": "Team name",
+  "join.members": "Members"
+}

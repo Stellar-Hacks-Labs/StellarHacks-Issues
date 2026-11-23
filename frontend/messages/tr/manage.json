@@ -1,0 +1,13 @@
+{
+  "console.title": "Organizatör Konsolu",
+  "console.overview": "Genel Bakış",
+  "console.applications": "Başvurular",
+  "console.screening": "Tarama",
+  "console.schedule": "Program",
+  "screening.approve": "Onayla",
+  "screening.reject": "Reddet",
+  "screening.pending": "İnceleme bekliyor",
+  "schedule.extend": "Son tarihi uzat",
+  "schedule.reason": "Sebep",
+  "schedule.submit": "Programı güncelle"
+}
