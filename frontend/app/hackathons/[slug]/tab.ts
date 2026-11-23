@@ -10,6 +10,8 @@
 
 export type Tab = "details" | "projects" | "results" | "hackers" | "find-team";
 
+/** Skills and open roles live at `/hackathons/[slug]/team-board`. This tab stays the request queue, because a request is not a listing. */
+
 /* Results last, because it is the tab that is empty for most of an event and
    the one people return for after it. A tab that says "not yet" for three days
    should not sit between two that always have something in them. */

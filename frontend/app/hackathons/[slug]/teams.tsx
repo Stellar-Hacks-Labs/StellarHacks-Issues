@@ -30,7 +30,10 @@ import {
  * place left and watching the second one pay a fee to find out there was not.
  */
 
-export function Teams({ contractId }: { contractId: string }) {
+export function Teams({ contractId, boardHref }: { contractId: string; boardHref?: string }) {
+  /* The board is a separate list of skills and open roles. Requests filed
+     there land in the same queue this tab already answers. */
+
   const { wallet } = useWallet();
   const [roster, setRoster] = useState<Roster | null>(null);
   const [requests, setRequests] = useState<Request[]>([]);
@@ -39,6 +42,7 @@ export function Teams({ contractId }: { contractId: string }) {
   const [hunt, setHunt] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [said, setSaid] = useState<{ ok: boolean; text: string } | null>(null);
+  const board = boardHref ?? null;
 
   const address = wallet?.address ?? null;
 
@@ -159,6 +163,11 @@ export function Teams({ contractId }: { contractId: string }) {
   return (
     <section className="border-t border-rule">
       <div className="mx-auto w-full max-w-[96rem] px-6 py-16">
+        {board ? (
+          <p className="mb-6 text-sm">
+            <a href={board}>Teammate board</a>
+          </p>
+        ) : null}
         {/* The inbox first, and only for somebody who has one. A captain with
             people waiting has something to do; everybody else has something to
             read, and the doing goes above the reading. */}

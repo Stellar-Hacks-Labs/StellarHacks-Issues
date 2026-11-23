@@ -76,7 +76,15 @@ export default async function Hackathon({
           team is a different errand from entering: somebody browsing for people
           to build with is not halfway through applying, and the two stacked on
           one page read as one long form. */}
-      {at === "find-team" && <Teams contractId={hackathon.contract_id} />}
+      {at === "find-team" && (
+        <>
+          <p className="mx-auto max-w-3xl px-6 pt-6 text-sm">
+            <a href={`/hackathons/${hackathon.slug}/team-board`}>Open the teammate board</a>
+            <span> for skills and open roles. Joining still files a request on this tab.</span>
+          </p>
+          <Teams contractId={hackathon.contract_id} boardHref={`/hackathons/${hackathon.slug}/team-board`} />
+        </>
+      )}
     </main>
   );
 }
