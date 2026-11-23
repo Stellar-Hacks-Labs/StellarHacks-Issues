@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "description": "Standard fixtures for surplus routing beyond the prize table",
+  "routes": [
+    {
+      "name": "pro_rata",
+      "route": {
+        "tag": "ProRata"
+      },
+      "description": "Surplus split pro rata across payable positions"
+    },
+    {
+      "name": "return_recipient",
+      "route": {
+        "tag": "Return",
+        "values": [
+          "GAMX62ZD4FWIKMWGVPEDR6WNL2TYTPQMO2ZJEAZUAON7VCZ5G2GWDF7W"
+        ]
+      },
+      "description": "Surplus returned to declared sponsor/organizer address"
+    },
+    {
+      "name": "roll_next_vault",
+      "route": {
+        "tag": "Roll",
+        "values": [
+          "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
+        ]
+      },
+      "description": "Surplus rolled forward to a named next hackathon instance vault"
+    }
+  ]
+}

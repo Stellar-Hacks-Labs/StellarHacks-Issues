@@ -10,6 +10,7 @@ import { claimCredit, digestOf } from "../../lib/backers";
 import { toSmallestUnit } from "../../lib/constitution";
 import { explorerFor } from "../../lib/explorer";
 import { units } from "../../lib/money";
+import { formatSurplusRoute } from "../../lib/surplus";
 import {
   alreadyRunning,
   feeOn,
@@ -489,6 +490,13 @@ export function SponsorPanel({
               <Line name="You pay" strong>
                 {units(amount + fee)} {code}
               </Line>
+
+              {rules.sponsorship.surplusRoute && (
+                <div className="border-t border-rule pt-2 text-[0.8125rem] text-ink-faint">
+                  <span>Surplus route: </span>
+                  <span className="text-ink">{formatSurplusRoute(rules.sponsorship.surplusRoute)}</span>
+                </div>
+              )}
             </dl>
 
             <Trouble

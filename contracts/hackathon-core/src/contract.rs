@@ -4,8 +4,8 @@ use soroban_sdk::{
 
 use crate::ballot::{validate_ballot, VoteChoice};
 use crate::constitution::{
-    total_prize_amount, validate_prize_tiers, Constitution, Deadline, PrizeTier, TeamPolicy,
-    TieBreakRule, Track,
+    total_prize_amount, validate_prize_tiers, Constitution, Deadline, PrizeTier, SurplusRoute,
+    TeamPolicy, TieBreakRule, Track,
 };
 use crate::errors::Error;
 use crate::events;
@@ -2340,8 +2340,84 @@ impl HackathonCore {
             return Err(Error::SettlementIncomplete);
         }
 
+        let vault = storage::load_vault(&env)?;
+        let surplus = VaultClient::new(&env, &vault).balance();
+        if surplus > 0 {
+            Self::route_surplus(&env, &constitution, &vault, surplus)?;
+        }
+
         storage::save_state(&env, &state.advance(env.ledger().timestamp())?);
         events::phase_advanced(&env, Phase::Completed);
+
+        Ok(())
+    }
+
+    /// Moves unallocated funds out of the vault according to the declared route.
+    fn route_surplus(
+        env: &Env,
+        constitution: &Constitution,
+        vault: &Address,
+        surplus: i128,
+    ) -> Result<(), Error> {
+        match &constitution.sponsorship.surplus_route {
+            SurplusRoute::Return(recipient) => {
+                VaultClient::new(env, vault).pay(recipient, &surplus);
+            }
+            SurplusRoute::Roll(next_vault) => {
+                VaultClient::new(env, vault).pay(next_vault, &surplus);
+            }
+            SurplusRoute::ProRata => {
+                let positions = Self::payable_positions(env, constitution);
+                let total_prize = constitution.prize_total()?;
+                if total_prize > 0 && !positions.is_empty() {
+                    let mut shares = Vec::new(env);
+                    let mut placed = 0i128;
+
+                    for tier in positions.iter() {
+                        let share = surplus
+                            .checked_mul(tier.amount)
+                            .ok_or(Error::ConstitutionInvalid)?
+                            / total_prize;
+                        shares.push_back(share);
+                        placed += share;
+                    }
+
+                    let top = Self::top_place(&positions);
+                    let remainder = surplus - placed;
+                    shares.set(top, shares.get_unchecked(top) + remainder);
+
+                    for (idx, tier) in positions.iter().enumerate() {
+                        let tier_share = shares.get_unchecked(idx as u32);
+                        if tier_share <= 0 {
+                            continue;
+                        }
+
+                        if let Ok(ranking) = storage::load_ranking(env, &tier.track) {
+                            if let Some(placement) = ranking.iter().find(|p| p.rank == tier.rank) {
+                                if let Ok(team) = storage::load_team(env, placement.team) {
+                                    for member in team.members.iter() {
+                                        if let Some(member_share) = team.share_of(tier_share, &member) {
+                                            if member_share > 0 {
+                                                VaultClient::new(env, vault).pay(&member, &member_share);
+                                            }
+                                        }
+                                    }
+                                    continue;
+                                }
+                            }
+                        }
+
+                        let organizer = storage::load_organizing_team(env)?.organizer;
+                        VaultClient::new(env, vault).pay(&organizer, &tier_share);
+                    }
+                } else {
+                    let organizer = storage::load_organizing_team(env)?.organizer;
+                    VaultClient::new(env, vault).pay(&organizer, &surplus);
+                }
+            }
+        }
+
+        events::surplus_routed(env, &constitution.sponsorship.surplus_route, surplus);
 
         Ok(())
     }

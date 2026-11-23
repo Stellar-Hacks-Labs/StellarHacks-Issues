@@ -1,7 +1,27 @@
-use soroban_sdk::{contracttype, Symbol, Vec};
+use soroban_sdk::{contracttype, Address, Symbol, Vec};
 
 use crate::constitution::scoring::Track;
 use crate::errors::Error;
+
+/// Where surplus deposits beyond the prize table go once the hackathon closes.
+//
+// The vault accepts deposits from anyone at any phase, and prizes are paid from
+// the frozen table. A sponsor arriving late or over-funding the pool creates a
+// balance with no prize position attached.
+//
+// ProRata tops up each winning position proportional to its declared prize amount.
+// Return sends the surplus back to a declared address (e.g. the sponsor or organizer).
+// Roll sends the surplus to the vault of a named next hackathon instance.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum SurplusRoute {
+    /// Spread across all payable positions in proportion to their prize amount.
+    ProRata,
+    /// Returned to a declared address.
+    Return(Address),
+    /// Rolled forward to a named next instance's vault.
+    Roll(Address),
+}
 
 /// Whether outside money may join the prize pool after the lock, and how far.
 //
@@ -51,6 +71,8 @@ pub struct SponsorshipPolicy {
     //
     // Read only when [`Self::max_new_tracks`] is positive.
     pub borrows_from: Symbol,
+    /// Where undirected surplus beyond the prize table goes once the event closes.
+    pub surplus_route: SurplusRoute,
 }
 
 impl SponsorshipPolicy {
@@ -67,6 +89,7 @@ impl SponsorshipPolicy {
             max_new_tracks: 0,
             min_bounty: 0,
             borrows_from: track,
+            surplus_route: SurplusRoute::ProRata,
         }
     }
 
@@ -132,6 +155,7 @@ mod test {
             max_new_tracks: 2,
             min_bounty: 100,
             borrows_from: symbol_short!("main"),
+            surplus_route: SurplusRoute::ProRata,
         }
     }
 
@@ -189,6 +213,7 @@ mod test {
             max_new_tracks: 0,
             min_bounty: 100,
             borrows_from: symbol_short!("ghost"),
+            surplus_route: SurplusRoute::ProRata,
         };
 
         assert_eq!(policy.validate(&tracks(&env)), Ok(()));

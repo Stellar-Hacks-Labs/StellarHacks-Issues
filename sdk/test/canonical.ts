@@ -63,6 +63,7 @@ export function canonicalConstitution(): Constitution {
       max_new_tracks: 2,
       min_bounty: 100n,
       borrows_from: "payments",
+      surplus_route: { tag: "ProRata", values: undefined },
     },
     tie_break: [
       { tag: "JudgeScore", values: undefined },

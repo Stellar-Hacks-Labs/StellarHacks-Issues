@@ -13,7 +13,7 @@
 use soroban_sdk::{contractevent, Address, BytesN, Env, Symbol, Vec};
 
 use crate::ballot::VoteChoice;
-use crate::constitution::Deadline;
+use crate::constitution::{Deadline, SurplusRoute};
 use crate::phase::Phase;
 
 /// A hackathon exists and is open for configuration.
@@ -825,6 +825,22 @@ pub fn share_swept(env: &Env, track: &Symbol, rank: u32, member: &Address, amoun
         track: track.clone(),
         rank,
         member: member.clone(),
+        amount,
+    }
+    .publish(env);
+}
+
+/// Surplus funds beyond the prize table were routed out of the vault.
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SurplusRouted {
+    pub route: SurplusRoute,
+    pub amount: i128,
+}
+
+pub fn surplus_routed(env: &Env, route: &SurplusRoute, amount: i128) {
+    SurplusRouted {
+        route: route.clone(),
         amount,
     }
     .publish(env);

@@ -18,6 +18,7 @@
  */
 
 import type { FieldRule, SubmissionFields } from "./constitution";
+import { type SurplusRoute } from "./surplus";
 
 /** The eight announced moments, seconds since the epoch. */
 export interface Schedule {
@@ -178,6 +179,8 @@ export interface Sponsorship {
   minBounty: bigint;
   /** The track a sponsored one takes its rubric and its judges from. */
   borrowsFrom: string;
+  /** Where funds beyond the prize table are routed at settlement. */
+  surplusRoute?: SurplusRoute;
 }
 
 export async function rulesFor(contractId: string): Promise<Rules | null> {
@@ -336,6 +339,7 @@ function sponsorshipOf(raw: unknown): Sponsorship {
     maxNewTracks: Number(policy["max_new_tracks"] ?? 0),
     minBounty: BigInt((policy["min_bounty"] as bigint | undefined) ?? 0),
     borrowsFrom: typeof policy["borrows_from"] === "string" ? policy["borrows_from"] : "",
+    surplusRoute: (policy["surplus_route"] as SurplusRoute | undefined) ?? { tag: "ProRata" },
   };
 }
 
