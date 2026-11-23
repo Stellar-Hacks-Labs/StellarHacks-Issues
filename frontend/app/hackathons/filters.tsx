@@ -69,6 +69,8 @@ export function Filters({
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2">
         <Search applied={applied} />
 
+        <a href="/search" className="label text-ink-soft hover:text-ink">Search everything</a>
+
         <div className="flex flex-wrap items-center gap-1">
           {stages.map((stage) => (
             <Choice

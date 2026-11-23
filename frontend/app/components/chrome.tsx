@@ -4,6 +4,7 @@ import { AccountMenu } from "./account-menu";
 import { currentUser, serverClient } from "../../lib/supabase/server";
 import { isStaff, mayOrganize } from "../../lib/organizing";
 import { profileOf, providerPicture } from "../../lib/profile";
+import { HeaderSearch } from "./header-search";
 
 /**
  * The frame every page is read inside.
@@ -109,6 +110,7 @@ export async function Header() {
             way in, then the person, then the connected address beside them.
             "Browse" used to sit here and said the same thing as the Hackathons
             link beside it. */}
+        <HeaderSearch />
         <AccountMenu
           email={user?.email ?? null}
           username={profile?.username ?? null}

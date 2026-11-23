@@ -144,6 +144,7 @@ export default async function Hackathons({ searchParams }: PageProps<"/hackathon
       </section>
 
       <Measure wide className="pb-12">
+        <Link href="/search" className="label text-ink-soft">Search projects and builders</Link>
         <Filters
           applied={{ stage: filter.stage, tag: filter.tag, q: filter.q }}
           tags={tags}
