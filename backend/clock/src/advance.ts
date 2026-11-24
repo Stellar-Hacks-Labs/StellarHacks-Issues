@@ -5,6 +5,9 @@ import { HackathonCore } from "@stelhacks/sdk";
 import { settings } from "./config.js";
 import { CALLS, named, nothingToDo, refusal, type Call } from "./due.js";
 import { payOut, type Paid } from "./payout.js";
+import { submitWithRetry, RetryExhaustedError } from "./retry.js";
+import { transitionStillDue } from "./idempotency.js";
+import { writeDeadLetter } from "./deadletter.js";
 
 /**
  * One hackathon, one lap.
@@ -91,11 +94,27 @@ export async function advance(contract: string): Promise<Done[]> {
       }
     }
 
-    await built.signAndSend();
-    done.push({ sent: true, call });
+    const phase = await phaseOf(core);
+    try {
+      const sent = await submitWithRetry({
+        submit: () => built.signAndSend(),
+        stillDue: () => transitionStillDue(() => phaseOf(core), phase),
+      });
+      if (sent !== null) done.push({ sent: true, call });
+    } catch (error) {
+      if (!(error instanceof RetryExhaustedError)) throw error;
+      const message = error.lastError instanceof Error ? error.lastError.message : String(error.lastError);
+      await writeDeadLetter({ contractId: contract, transition: call, lastError: message });
+      done.push({ sent: false, call, because: "retry budget exhausted", expected: false });
+    }
   }
 
   return done;
+}
+
+async function phaseOf(core: HackathonCore): Promise<number> {
+  const phase = (await core.phase()).result;
+  return phase.isOk() ? Number(phase.unwrap()) : -1;
 }
 
 /**

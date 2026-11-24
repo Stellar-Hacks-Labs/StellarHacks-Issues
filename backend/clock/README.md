@@ -1,5 +1,7 @@
 # Clock
 
+Submission retries are bounded and phase-aware. See `../../docs/clock-retries.md`; exhausted transitions are recorded for organizer review rather than retried forever.
+
 Keeps every hackathon to the deadlines its own rules set, by being the thing
 that is awake when one passes.
 

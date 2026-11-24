@@ -4,6 +4,23 @@ import { revalidatePath } from "next/cache";
 
 import { currentUser, serverClient } from "../../lib/supabase/server";
 import { whatIsWrong, type ProfileEdit } from "../../lib/profile";
+import { NOTIFICATION_TYPES } from "../../lib/notifications/preferences";
+
+export async function saveNotificationPreferences(
+  form: FormData,
+): Promise<void> {
+  const [db, user] = await Promise.all([serverClient(), currentUser()]);
+  if (!db || !user) return;
+  await db.from("notification_preferences").upsert(
+    NOTIFICATION_TYPES.map((type) => ({
+      user_id: user.id,
+      type,
+      enabled: form.has(type),
+    })),
+    { onConflict: "user_id,type" },
+  );
+  revalidatePath("/account");
+}
 
 /**
  * Saving a profile, on the server, as the person who owns it.
@@ -21,7 +38,10 @@ export interface Saved {
   message: string | null;
 }
 
-export async function saveProfile(_before: Saved, form: FormData): Promise<Saved> {
+export async function saveProfile(
+  _before: Saved,
+  form: FormData,
+): Promise<Saved> {
   const edit: ProfileEdit = {
     username: read(form, "username").toLowerCase(),
     displayName: read(form, "displayName"),
@@ -119,7 +139,10 @@ export async function saveAvatar(url: string): Promise<Saved> {
     return { ok: false, message: "Your session has expired. Sign in again." };
   }
 
-  const { error } = await db.from("profiles").update({ avatar_url: url }).eq("id", user.id);
+  const { error } = await db
+    .from("profiles")
+    .update({ avatar_url: url })
+    .eq("id", user.id);
 
   if (error !== null) {
     return { ok: false, message: error.message };

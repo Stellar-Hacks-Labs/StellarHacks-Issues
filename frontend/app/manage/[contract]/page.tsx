@@ -3,6 +3,7 @@ import { Measure } from "../../components/primitives";
 import { currentUser } from "../../../lib/supabase/server";
 import { presentationOf } from "../../../lib/chain";
 import Link from "next/link";
+import { DeadLetterNotice } from "./dead-letter-notice";
 
 /**
  * Running a hackathon, keyed on the contract rather than on a name.
@@ -48,6 +49,7 @@ export default async function Manage({
             View analytics
           </Link>
         </p>
+        <DeadLetterNotice contractId={contract} />
         <Console
           contractId={contract}
           written={written}

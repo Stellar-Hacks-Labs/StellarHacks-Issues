@@ -7,6 +7,7 @@ import { health } from "./health.js";
 import { read, replayable, store } from "./ingest.js";
 import { project } from "./project.js";
 import { apply, discard } from "./write.js";
+import { deliverLifecycleNotifications } from "./notify/index.js";
 
 /**
  * Soroban events into Postgres, and nothing else.
@@ -84,7 +85,9 @@ const NEAR_THE_HEAD = 12;
 
 async function reproject(contract: string): Promise<void> {
   const log = await replayable(contract);
-  await apply(project(decode(log.events), log.reads));
+  const events = decode(log.events);
+  await apply(project(events, log.reads));
+  await deliverLifecycleNotifications(events);
   projected.add(contract);
 }
 
