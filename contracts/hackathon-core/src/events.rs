@@ -245,6 +245,20 @@ pub struct ScoreRevealed {
     pub weighted: u32,
 }
 
+/// A judge posted a strict-mode commitment during the judging window.
+//
+// The digest travels with the event so the proof page can show what was sealed
+// without calling the contract, and so a withheld disclose is visible as a
+// commitment that never opened rather than as a silence.
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ScorecardCommitted {
+    #[topic]
+    pub judge: Address,
+    pub team: u32,
+    pub commitment: BytesN<32>,
+}
+
 /// Every community ballot is now sealed behind one digest.
 #[contractevent]
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -716,6 +730,15 @@ pub fn score_revealed(env: &Env, judge: &Address, team: u32, weighted: u32) {
         judge: judge.clone(),
         team,
         weighted,
+    }
+    .publish(env);
+}
+
+pub fn scorecard_committed(env: &Env, judge: &Address, team: u32, commitment: &BytesN<32>) {
+    ScorecardCommitted {
+        judge: judge.clone(),
+        team,
+        commitment: commitment.clone(),
     }
     .publish(env);
 }

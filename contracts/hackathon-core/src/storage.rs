@@ -81,6 +81,9 @@ pub enum DataKey {
     RecusalCount(u32),
     /// The digest sealing every scorecard until the reveal.
     ScoreRoot,
+    /// One judge's strict-mode commitment for one project, posted during
+    /// judging and opened at the disclose.
+    Commitment(u32, Address),
     /// One judge's weighted total for one project, once revealed.
     Score(u32, Address),
     /// How many scorecards a project has had revealed, and their sum, so the
@@ -455,6 +458,25 @@ pub fn load_score_root(env: &Env) -> Result<BytesN<32>, Error> {
 
 pub fn has_score_root(env: &Env) -> bool {
     env.storage().instance().has(&DataKey::ScoreRoot)
+}
+
+pub fn save_commitment(env: &Env, team: u32, judge: &Address, commitment: &BytesN<32>) {
+    let key = DataKey::Commitment(team, judge.clone());
+    env.storage().persistent().set(&key, commitment);
+    touch_entry(env, &key);
+}
+
+pub fn load_commitment(env: &Env, team: u32, judge: &Address) -> Result<BytesN<32>, Error> {
+    env.storage()
+        .persistent()
+        .get(&DataKey::Commitment(team, judge.clone()))
+        .ok_or(Error::NotFound)
+}
+
+pub fn has_commitment(env: &Env, team: u32, judge: &Address) -> bool {
+    env.storage()
+        .persistent()
+        .has(&DataKey::Commitment(team, judge.clone()))
 }
 
 pub fn has_score(env: &Env, team: u32, judge: &Address) -> bool {

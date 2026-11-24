@@ -109,6 +109,15 @@ export interface ScoreRow {
   revealed_at_ledger: number;
 }
 
+export interface CommitmentRow {
+  contract_id: string;
+  team_id: number;
+  judge: string;
+  commitment: string;
+  committed_at_ledger: number;
+  disclosed_at_ledger: number | null;
+}
+
 export interface ResultRow {
   contract_id: string;
   track: string;
@@ -138,6 +147,7 @@ export interface Projection {
   team_members: TeamMemberRow[];
   submissions: SubmissionRow[];
   scores: ScoreRow[];
+  scorecard_commitments: CommitmentRow[];
   results: ResultRow[];
   payments: PaymentRow[];
 }

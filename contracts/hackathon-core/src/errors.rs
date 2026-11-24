@@ -104,6 +104,8 @@ pub enum Error {
     RootAlreadyPublished = 54,
     RootMissing = 55,
     ProofDoesNotMatchRoot = 56,
+    /// A strict-mode disclosure does not open the commitment the judge posted.
+    CommitmentMismatch = 57,
 
     // Community vote
     VoterNotEligible = 60,

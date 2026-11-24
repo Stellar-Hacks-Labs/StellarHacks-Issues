@@ -23,6 +23,7 @@ const tables = [
   ["team_members", "contract_id,team_id,address"],
   ["submissions", "contract_id,team_id"],
   ["scores", "contract_id,team_id,judge"],
+  ["scorecard_commitments", "contract_id,team_id,judge"],
   ["results", "contract_id,track,rank"],
   ["payments", "contract_id,track,rank,recipient"],
 ] as const satisfies readonly (readonly [keyof Projection, string])[];

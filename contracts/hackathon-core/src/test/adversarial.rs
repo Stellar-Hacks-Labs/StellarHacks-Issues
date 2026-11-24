@@ -231,3 +231,24 @@ fn nobody_can_step_a_judge_away_from_a_project() {
 
     fixture.client.recuse(&judge, &1);
 }
+
+/// A strict-mode commitment is a judge's own seal. Posting one without their
+/// signature would let anybody freeze a digest against their name.
+#[test]
+#[should_panic(expected = "Unauthorized")]
+fn nobody_can_commit_a_scorecard_for_somebody_else() {
+    let fixture = Fixture::funded_and_open_with(|constitution| {
+        use crate::constitution::{JudgingMode, VotePolicy};
+        constitution.judging_mode = JudgingMode::Strict;
+        constitution.vote = VotePolicy::judges_only();
+        constitution.schedule.community_vote_opens_at = 0;
+        constitution.schedule.community_vote_closes_at = 0;
+        constitution.judge_quorum = 1;
+    });
+    let judge = fixture.client.constitution().judges.get(0).unwrap().judge;
+
+    fixture.env.set_auths(&[]);
+    fixture
+        .client
+        .commit_scorecard(&judge, &1, &digest(&fixture));
+}

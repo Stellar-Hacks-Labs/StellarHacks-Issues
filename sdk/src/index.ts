@@ -20,6 +20,12 @@ export {
   ballotLeaf,
 } from "./hashing.js";
 export {
+  scorecardCommitment,
+  commitmentMatches,
+  randomSalt,
+  type Salt,
+} from "./strict.js";
+export {
   signScorecard,
   signedPayload,
   signBallot,

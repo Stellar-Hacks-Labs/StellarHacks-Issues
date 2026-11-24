@@ -18,6 +18,8 @@ mod registration;
 mod settlement;
 mod setup;
 mod sponsorship;
+mod strict;
+mod strict_reveal;
 mod submission;
 mod surplus;
 

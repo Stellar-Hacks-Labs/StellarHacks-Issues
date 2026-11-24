@@ -575,6 +575,24 @@ undirected money, and directed sponsorships already refund from their own ledger
 
 ---
 
+## 27. Strict judging commits with a salted digest and reuses the sealed tally
+
+**Decided.** `commit_scorecard` / `disclose_scorecard` implement
+`JudgingMode::Strict`. The commitment is
+`H(stelhacks.v1.scorecard-commitment ‖ scorecard_xdr ‖ salt)` with a
+sixteen-byte salt. A disclose that does not open the posted digest is refused
+with `CommitmentMismatch` and leaves state unchanged. A matching disclose
+writes through the same score and criterion tally path as `reveal_score`, so
+the ranking cannot disagree between the modes on the same marks. Disclose asks
+for no signature: the commitment is the authorization, matching decision 14.
+
+**Why.** The PRD already modelled the mode; the sealed path remains the
+default. Naming a distinct domain keeps commitments from colliding with Merkle
+leaves. Reusing the tally path is what makes "ranking matches sealed mode" a
+property of one implementation rather than of two that can drift.
+
+---
+
 ## Still open
 
 - Team structure: maximum size, who sets the in team prize shares, whether one

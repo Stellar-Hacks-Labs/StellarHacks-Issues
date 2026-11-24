@@ -5,6 +5,7 @@ import {
   type PaymentRow,
   type Projection,
   type ResultRow,
+  type CommitmentRow,
   type ScoreRow,
   type ProjectedEvent,
   type StoredRead,
@@ -31,6 +32,7 @@ export function project(events: readonly ProjectedEvent[], reads: readonly Store
   const members = new Map<string, TeamMemberRow>();
   const submissions = new Map<string, SubmissionRow>();
   const scores = new Map<string, ScoreRow>();
+  const commitments = new Map<string, CommitmentRow>();
   const results = new Map<string, ResultRow>();
   const payments = new Map<string, PaymentRow>();
 
@@ -173,6 +175,21 @@ export function project(events: readonly ProjectedEvent[], reads: readonly Store
 
       // The result ------------------------------------------------------------
 
+      case "ScorecardCommitted": {
+        const team = Number(field["team"]);
+        const judge = text(field["judge"]);
+
+        commitments.set(key(contract, String(team), judge), {
+          contract_id: contract,
+          team_id: team,
+          judge,
+          commitment: bytes(field["commitment"]),
+          committed_at_ledger: at,
+          disclosed_at_ledger: null,
+        });
+        break;
+      }
+
       case "ScoreRevealed": {
         const team = Number(field["team"]);
         const judge = text(field["judge"]);
@@ -184,6 +201,16 @@ export function project(events: readonly ProjectedEvent[], reads: readonly Store
           weighted: Number(field["weighted"]),
           revealed_at_ledger: at,
         });
+
+        // A strict disclose reuses ScoreRevealed, so stamp the commitment row
+        // when one exists. Easy-mode reveals have no commitment to update.
+        const posted = commitments.get(key(contract, String(team), judge));
+        if (posted !== undefined) {
+          commitments.set(key(contract, String(team), judge), {
+            ...posted,
+            disclosed_at_ledger: at,
+          });
+        }
         break;
       }
 
@@ -266,6 +293,11 @@ export function project(events: readonly ProjectedEvent[], reads: readonly Store
     ]),
     submissions: sorted([...submissions.values()], (row) => [row.contract_id, pad(row.team_id)]),
     scores: sorted([...scores.values()], (row) => [row.contract_id, pad(row.team_id), row.judge]),
+    scorecard_commitments: sorted([...commitments.values()], (row) => [
+      row.contract_id,
+      pad(row.team_id),
+      row.judge,
+    ]),
     results: sorted([...results.values()], (row) => [row.contract_id, row.track, pad(row.rank)]),
     payments: sorted([...payments.values()], (row) => [
       row.contract_id,

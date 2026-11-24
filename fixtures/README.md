@@ -25,6 +25,7 @@ the two suites red, and the file is what says which side moved.
 | `submission.xdr.hex` | The canonical submission metadata, XDR encoded |
 | `submission.sha256` | Its digest, which is what pins a project at the deadline |
 | `scorecard-leaf.sha256` | The leaf a judge's scorecard occupies in the sealed tree |
+| `scorecard-commitment.sha256` | The digest a strict-mode judge posts for the canonical scorecard |
 | `ballot-leaf.sha256` | The leaf a community ballot occupies |
 | `merkle-root.sha256` | The two leaves above, combined into one node |
 | `event-project-submitted.hex` | One real `ProjectSubmitted` event, whole, as the chain emitted it |

@@ -7,6 +7,7 @@
 //! outside this contract is allowed to decide who won.
 
 mod ballot;
+mod commitments;
 mod constitution;
 mod contract;
 mod errors;
@@ -29,6 +30,7 @@ mod test;
 mod vault;
 
 pub use ballot::{validate_ballot, VoteChoice};
+pub use commitments::{scorecard_commitment, Salt};
 pub use constitution::{
     total_prize_amount, validate_prize_tiers, validate_tie_break, Constitution, Criterion,
     Deadline, DiscretionPolicy, ExtensionPolicy, JudgeAssignment, JudgingMode, PlatformFee,
