@@ -1,0 +1,12 @@
+{
+  "covered": [
+    { "from": 1000, "to": 1100 },
+    { "from": 1200, "to": 1300 }
+  ],
+  "cursor": 1300,
+  "oldestRpc": 900,
+  "origin": 1000,
+  "expectedGaps": [
+    { "from": 1101, "to": 1199, "reason": "missing_coverage" }
+  ]
+}
