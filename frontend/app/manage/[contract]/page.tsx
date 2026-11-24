@@ -2,6 +2,7 @@ import { Console } from "./console";
 import { Measure } from "../../components/primitives";
 import { currentUser } from "../../../lib/supabase/server";
 import { presentationOf } from "../../../lib/chain";
+import { DeadLetterNotice } from "./dead-letter-notice";
 
 /**
  * Running a hackathon, keyed on the contract rather than on a name.
@@ -37,6 +38,7 @@ export default async function Manage({ params }: PageProps<"/manage/[contract]">
           banner, and holding it to a reading width left the whole thing in the
           middle of the screen with paper down both sides. */}
       <Measure wide className="py-10 pb-24 sm:py-12">
+        <DeadLetterNotice contractId={contract} />
         <Console
           contractId={contract}
           written={written}
