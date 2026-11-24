@@ -10,6 +10,7 @@ import { decisions, resultsOf, tracksOf } from "../../../../lib/results";
 import { rootsOf } from "../../../../lib/roots";
 import { entriesOf } from "../../../../lib/submissions";
 import { titleOf } from "../../../../lib/words";
+import { BundleDownload } from "./bundle-download";
 
 /**
  * The whole receipt, on one page.
@@ -214,6 +215,10 @@ export default async function Proof({ params }: PageProps<"/hackathons/[slug]/pr
                 </div>
               ))
             )}
+          </Section>
+
+          <Section title="Take it with you">
+            <BundleDownload contractId={contract} />
           </Section>
         </div>
       </Measure>

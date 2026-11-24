@@ -55,6 +55,22 @@ export { validateSubmission, type SubmissionProblem } from "./submission.js";
 export { toHex, fromHex } from "./hex.js";
 export { spec } from "./spec.js";
 export type { Digest } from "./merkle.js";
+export {
+  BUNDLE_FORMAT,
+  BUNDLE_VERSION,
+  REQUIRED_PATHS,
+  isManifest,
+  readBundle,
+  unzipStore,
+  sha256Hex,
+  checkBundle,
+  checkOpened,
+  runBundleCli,
+  type Manifest,
+  type ManifestFile,
+  type BundleFiles,
+  type CheckResult,
+} from "./bundle/index.js";
 
 export { Client as HackathonCore } from "hackathon-core";
 export { Client as PrizeVault } from "prize-vault";

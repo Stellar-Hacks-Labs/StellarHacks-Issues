@@ -862,6 +862,8 @@ Deferred work is recorded rather than omitted.
 | `StelHacks-PRD.md` | Product requirements document, in Turkish |
 | `docs/decisions.md` | Twenty five entries recording each departure from the requirements document with its rationale. Where the two conflict, this document governs |
 | `docs/deployments.md` | Addresses, wasm hashes, the reference instance, and defects identified on the live network |
+| `docs/evidence-bundle.md` | How the proof page exports a self-contained evidence archive |
+| `docs/evidence-bundle-format.md` | On-disk layout and versioning of the evidence zip |
 | Layer documents | `backend/`, `frontend/`, `sdk/` and `fixtures/`, and one per service |
 
 Three codebase conventions are stated here because they explain the structure a
