@@ -1,0 +1,379 @@
+{
+  "contractId": "CDANGHBE63NZCE635GWIDXXCDVM2QM64EMXSOAYSUI5SQM7CHCPTUHUM",
+  "constitution": {
+    "version": 6,
+    "metadata_hash": "0707070707070707070707070707070707070707070707070707070707070707",
+    "prize_asset": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "tracks": [
+      {
+        "id": "payments",
+        "criteria": [
+          {
+            "id": "technical",
+            "weight_bps": 6000
+          },
+          {
+            "id": "novelty",
+            "weight_bps": 4000
+          }
+        ],
+        "no_award_allowed": false
+      },
+      {
+        "id": "defi",
+        "criteria": [
+          {
+            "id": "technical",
+            "weight_bps": 6000
+          },
+          {
+            "id": "novelty",
+            "weight_bps": 4000
+          }
+        ],
+        "no_award_allowed": true
+      }
+    ],
+    "judges": [
+      {
+        "judge": "GA3A3NY4VLTTUPJCJSTJ457KAOXKPZ3PQER4M2F5TQRFG5TTNEOBQZ3K",
+        "tracks": [
+          "payments",
+          "defi"
+        ]
+      },
+      {
+        "judge": "GD5UICFSMKGZAEP67EPBIXVENKEUXSUWT7RUT27YH4HHYVGRQURDMVXL",
+        "tracks": [
+          "payments",
+          "defi"
+        ]
+      },
+      {
+        "judge": "GCZYAVTGEEWBFJNBFNPWOYNFPBA4C5O7YFYVZXUHWLKXZCV4LCAJH2QC",
+        "tracks": [
+          "payments",
+          "defi"
+        ]
+      }
+    ],
+    "judge_quorum": 3,
+    "judging_mode": {
+      "tag": "Easy",
+      "values": [
+        "GAF6IFHHU3QF3LFFDYCJ3WDB3JFLUWF73LBLWF3UK3GK5GXHH7PHWQWY"
+      ]
+    },
+    "vote": {
+      "judge_bps": 8000,
+      "community_bps": 2000,
+      "power": 10,
+      "max_choices": 3
+    },
+    "visibility": 0,
+    "submission_requirements": {
+      "repository": 2,
+      "demo_video": 2,
+      "live_url": 1,
+      "pitch_deck": 1,
+      "deployed_contract": 1
+    },
+    "registration": 0,
+    "teams": {
+      "max_size": 4,
+      "multi_team_allowed": false
+    },
+    "prize_tiers": [
+      {
+        "track": "payments",
+        "rank": 1,
+        "amount": "5000"
+      },
+      {
+        "track": "payments",
+        "rank": 2,
+        "amount": "3000"
+      },
+      {
+        "track": "defi",
+        "rank": 1,
+        "amount": "2000"
+      }
+    ],
+    "platform_fee": {
+      "collector": "GAMX62ZD4FWIKMWGVPEDR6WNL2TYTPQMO2ZJEAZUAON7VCZ5G2GWDF7W",
+      "bps": 500
+    },
+    "sponsorship": {
+      "top_ups_allowed": true,
+      "max_new_tracks": 2,
+      "min_bounty": "100",
+      "borrows_from": "payments"
+    },
+    "tie_break": [
+      {
+        "tag": "JudgeScore"
+      },
+      {
+        "tag": "SubmissionOrder"
+      }
+    ],
+    "discretion": {
+      "disqualification_threshold": 2,
+      "appeal_window": "172800",
+      "settlement": {
+        "tag": "SafetyWindow",
+        "values": [
+          "86400"
+        ]
+      },
+      "prize_claim_period": "7776000",
+      "unclaimed_refund": 0,
+      "no_award_refund": 0,
+      "cancellation_threshold": 2,
+      "cancellation_refund": 0
+    },
+    "schedule": {
+      "registration_opens_at": "86400000",
+      "registration_closes_at": "87004800",
+      "submission_opens_at": "86400000",
+      "submission_closes_at": "87177600",
+      "screening_closes_at": "87350400",
+      "judging_closes_at": "87609600",
+      "community_vote_opens_at": "87357600",
+      "community_vote_closes_at": "87523200"
+    },
+    "extensions": {
+      "max_extensions_per_deadline": 2,
+      "max_total_seconds_per_deadline": "172800"
+    }
+  },
+  "constitutionHash": "e8a6ea368949207a5885ca8dc48ffba6e80f6a5233b98053b29df6570c18ab70",
+  "scoreRoot": "45566c352fb107432934d74b6b1eae83e5476576364f635ddb59817ee79c19c8",
+  "ballotRoot": "7523a9b28b1d7bdaee63b7d215e35cb7d12fc892584ee14c8544a5ad1d0e9d35",
+  "disclosures": {
+    "scorecards": [
+      {
+        "judge": "GA3A3NY4VLTTUPJCJSTJ457KAOXKPZ3PQER4M2F5TQRFG5TTNEOBQZ3K",
+        "team": 1,
+        "scores": [
+          {
+            "criterion": "technical",
+            "score": 90
+          },
+          {
+            "criterion": "novelty",
+            "score": 80
+          }
+        ]
+      },
+      {
+        "judge": "GD5UICFSMKGZAEP67EPBIXVENKEUXSUWT7RUT27YH4HHYVGRQURDMVXL",
+        "team": 1,
+        "scores": [
+          {
+            "criterion": "technical",
+            "score": 90
+          },
+          {
+            "criterion": "novelty",
+            "score": 80
+          }
+        ]
+      },
+      {
+        "judge": "GCZYAVTGEEWBFJNBFNPWOYNFPBA4C5O7YFYVZXUHWLKXZCV4LCAJH2QC",
+        "team": 1,
+        "scores": [
+          {
+            "criterion": "technical",
+            "score": 90
+          },
+          {
+            "criterion": "novelty",
+            "score": 80
+          }
+        ]
+      },
+      {
+        "judge": "GA3A3NY4VLTTUPJCJSTJ457KAOXKPZ3PQER4M2F5TQRFG5TTNEOBQZ3K",
+        "team": 2,
+        "scores": [
+          {
+            "criterion": "technical",
+            "score": 40
+          },
+          {
+            "criterion": "novelty",
+            "score": 30
+          }
+        ]
+      },
+      {
+        "judge": "GD5UICFSMKGZAEP67EPBIXVENKEUXSUWT7RUT27YH4HHYVGRQURDMVXL",
+        "team": 2,
+        "scores": [
+          {
+            "criterion": "technical",
+            "score": 40
+          },
+          {
+            "criterion": "novelty",
+            "score": 30
+          }
+        ]
+      },
+      {
+        "judge": "GCZYAVTGEEWBFJNBFNPWOYNFPBA4C5O7YFYVZXUHWLKXZCV4LCAJH2QC",
+        "team": 2,
+        "scores": [
+          {
+            "criterion": "technical",
+            "score": 40
+          },
+          {
+            "criterion": "novelty",
+            "score": 30
+          }
+        ]
+      }
+    ],
+    "ballots": [
+      {
+        "voter": "GDWL4D6IKDN4OQIA5PISXXN7TCT3Q7S45SXAKHHEONCUCHDHV2CXUVJ4",
+        "choices": [
+          {
+            "team": 1,
+            "weight": 7
+          },
+          {
+            "team": 2,
+            "weight": 3
+          }
+        ]
+      },
+      {
+        "voter": "GB45FLZ24LKDNR2OSMHGI45PA47PY4W4VSTK7BPTATZTPN7JVEG3Y4WP",
+        "choices": [
+          {
+            "team": 1,
+            "weight": 6
+          },
+          {
+            "team": 2,
+            "weight": 4
+          }
+        ]
+      }
+    ]
+  },
+  "projects": [
+    {
+      "team": 1,
+      "track": "payments",
+      "submittedAt": "86403600",
+      "valid": true,
+      "scores": {
+        "count": 3,
+        "total": "2580000"
+      },
+      "votes": 13,
+      "criterionTallies": {}
+    },
+    {
+      "team": 2,
+      "track": "payments",
+      "submittedAt": "86403600",
+      "valid": true,
+      "scores": {
+        "count": 3,
+        "total": "1080000"
+      },
+      "votes": 7,
+      "criterionTallies": {}
+    }
+  ],
+  "topVotes": 13,
+  "voteWeights": {
+    "1": 13,
+    "2": 7
+  },
+  "rankings": {
+    "payments": [
+      {
+        "team": 1,
+        "rank": 1,
+        "final_score": 888000,
+        "judge_average": 860000,
+        "community": 1000000,
+        "decided_by": 0
+      },
+      {
+        "team": 2,
+        "rank": 2,
+        "final_score": 395692,
+        "judge_average": 360000,
+        "community": 538461,
+        "decided_by": 0
+      }
+    ],
+    "defi": []
+  },
+  "payouts": {
+    "bonuses": {},
+    "teams": [
+      {
+        "id": 1,
+        "members": [
+          "GA3A3NY4VLTTUPJCJSTJ457KAOXKPZ3PQER4M2F5TQRFG5TTNEOBQZ3K"
+        ]
+      },
+      {
+        "id": 2,
+        "members": [
+          "GD5UICFSMKGZAEP67EPBIXVENKEUXSUWT7RUT27YH4HHYVGRQURDMVXL",
+          "GCZYAVTGEEWBFJNBFNPWOYNFPBA4C5O7YFYVZXUHWLKXZCV4LCAJH2QC"
+        ]
+      }
+    ],
+    "payouts": [
+      {
+        "track": "payments",
+        "rank": 1,
+        "amount": "5000",
+        "team": 1,
+        "members": [
+          "GA3A3NY4VLTTUPJCJSTJ457KAOXKPZ3PQER4M2F5TQRFG5TTNEOBQZ3K"
+        ],
+        "shares": [
+          "5000"
+        ]
+      },
+      {
+        "track": "payments",
+        "rank": 2,
+        "amount": "3000",
+        "team": 2,
+        "members": [
+          "GD5UICFSMKGZAEP67EPBIXVENKEUXSUWT7RUT27YH4HHYVGRQURDMVXL",
+          "GCZYAVTGEEWBFJNBFNPWOYNFPBA4C5O7YFYVZXUHWLKXZCV4LCAJH2QC"
+        ],
+        "shares": [
+          "1500",
+          "1500"
+        ]
+      },
+      {
+        "track": "defi",
+        "rank": 1,
+        "amount": "2000",
+        "members": [],
+        "shares": []
+      }
+    ]
+  },
+  "tlock": {
+    "judgingClosesAt": 1700000000,
+    "claimedRound": 2398879
+  }
+}

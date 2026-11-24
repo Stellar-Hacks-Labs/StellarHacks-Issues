@@ -1,0 +1,178 @@
+[
+  {
+    "name": "ScoreDisclosed",
+    "fields": {
+      "scorecard": {
+        "judge": "GA3A3NY4VLTTUPJCJSTJ457KAOXKPZ3PQER4M2F5TQRFG5TTNEOBQZ3K",
+        "team": 1,
+        "scores": [
+          {
+            "criterion": "technical",
+            "score": 90
+          },
+          {
+            "criterion": "novelty",
+            "score": 80
+          }
+        ]
+      },
+      "judge": "GA3A3NY4VLTTUPJCJSTJ457KAOXKPZ3PQER4M2F5TQRFG5TTNEOBQZ3K",
+      "team": 1,
+      "weighted": 860000
+    }
+  },
+  {
+    "name": "ScoreDisclosed",
+    "fields": {
+      "scorecard": {
+        "judge": "GD5UICFSMKGZAEP67EPBIXVENKEUXSUWT7RUT27YH4HHYVGRQURDMVXL",
+        "team": 1,
+        "scores": [
+          {
+            "criterion": "technical",
+            "score": 90
+          },
+          {
+            "criterion": "novelty",
+            "score": 80
+          }
+        ]
+      },
+      "judge": "GD5UICFSMKGZAEP67EPBIXVENKEUXSUWT7RUT27YH4HHYVGRQURDMVXL",
+      "team": 1,
+      "weighted": 860000
+    }
+  },
+  {
+    "name": "ScoreDisclosed",
+    "fields": {
+      "scorecard": {
+        "judge": "GCZYAVTGEEWBFJNBFNPWOYNFPBA4C5O7YFYVZXUHWLKXZCV4LCAJH2QC",
+        "team": 1,
+        "scores": [
+          {
+            "criterion": "technical",
+            "score": 90
+          },
+          {
+            "criterion": "novelty",
+            "score": 80
+          }
+        ]
+      },
+      "judge": "GCZYAVTGEEWBFJNBFNPWOYNFPBA4C5O7YFYVZXUHWLKXZCV4LCAJH2QC",
+      "team": 1,
+      "weighted": 860000
+    }
+  },
+  {
+    "name": "ScoreDisclosed",
+    "fields": {
+      "scorecard": {
+        "judge": "GA3A3NY4VLTTUPJCJSTJ457KAOXKPZ3PQER4M2F5TQRFG5TTNEOBQZ3K",
+        "team": 2,
+        "scores": [
+          {
+            "criterion": "technical",
+            "score": 40
+          },
+          {
+            "criterion": "novelty",
+            "score": 30
+          }
+        ]
+      },
+      "judge": "GA3A3NY4VLTTUPJCJSTJ457KAOXKPZ3PQER4M2F5TQRFG5TTNEOBQZ3K",
+      "team": 2,
+      "weighted": 360000
+    }
+  },
+  {
+    "name": "ScoreDisclosed",
+    "fields": {
+      "scorecard": {
+        "judge": "GD5UICFSMKGZAEP67EPBIXVENKEUXSUWT7RUT27YH4HHYVGRQURDMVXL",
+        "team": 2,
+        "scores": [
+          {
+            "criterion": "technical",
+            "score": 40
+          },
+          {
+            "criterion": "novelty",
+            "score": 30
+          }
+        ]
+      },
+      "judge": "GD5UICFSMKGZAEP67EPBIXVENKEUXSUWT7RUT27YH4HHYVGRQURDMVXL",
+      "team": 2,
+      "weighted": 360000
+    }
+  },
+  {
+    "name": "ScoreDisclosed",
+    "fields": {
+      "scorecard": {
+        "judge": "GCZYAVTGEEWBFJNBFNPWOYNFPBA4C5O7YFYVZXUHWLKXZCV4LCAJH2QC",
+        "team": 2,
+        "scores": [
+          {
+            "criterion": "technical",
+            "score": 40
+          },
+          {
+            "criterion": "novelty",
+            "score": 30
+          }
+        ]
+      },
+      "judge": "GCZYAVTGEEWBFJNBFNPWOYNFPBA4C5O7YFYVZXUHWLKXZCV4LCAJH2QC",
+      "team": 2,
+      "weighted": 360000
+    }
+  },
+  {
+    "name": "BallotDisclosed",
+    "fields": {
+      "voter": "GDWL4D6IKDN4OQIA5PISXXN7TCT3Q7S45SXAKHHEONCUCHDHV2CXUVJ4",
+      "choices": [
+        {
+          "team": 1,
+          "weight": 7
+        },
+        {
+          "team": 2,
+          "weight": 3
+        }
+      ]
+    }
+  },
+  {
+    "name": "BallotDisclosed",
+    "fields": {
+      "voter": "GB45FLZ24LKDNR2OSMHGI45PA47PY4W4VSTK7BPTATZTPN7JVEG3Y4WP",
+      "choices": [
+        {
+          "team": 1,
+          "weight": 6
+        },
+        {
+          "team": 2,
+          "weight": 4
+        }
+      ]
+    }
+  },
+  {
+    "name": "ScoreRootPublished",
+    "fields": {
+      "root": "45566c352fb107432934d74b6b1eae83e5476576364f635ddb59817ee79c19c8"
+    }
+  },
+  {
+    "name": "BallotRootPublished",
+    "fields": {
+      "root": "7523a9b28b1d7bdaee63b7d215e35cb7d12fc892584ee14c8544a5ad1d0e9d35"
+    }
+  }
+]

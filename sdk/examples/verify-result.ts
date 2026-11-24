@@ -1,7 +1,12 @@
 /**
  * Check a published hackathon result without trusting anybody who published it.
  *
- * Run against a finished hackathon:
+ * Prefer the packaged CLI for day-to-day use:
+ *
+ *     npx stelhacks-verify C<contract id> --network testnet
+ *
+ * This example keeps the original short walkthrough against a finished
+ * hackathon and a named track:
  *
  *     npx tsx examples/verify-result.ts C<contract id> payments
  *
@@ -67,7 +72,7 @@ for (let team = 1; team <= teams; team += 1) {
     if (rule.tag === "Criterion") {
       const tally = (await core.criterion_tally({ team_id: team, criterion: rule.values[0] }))
         .result;
-      criterionTallies[rule.values[0]] = { count: tally.count, total: tally.total };
+      criterionTallies[rule.values[0]] = { count: tally.count, total: BigInt(tally.total) };
     }
   }
 
@@ -76,7 +81,7 @@ for (let team = 1; team <= teams; team += 1) {
     track: entry.track,
     submittedAt: entry.submitted_at,
     valid: entry.status === 0,
-    scores: { count: scores.count, total: scores.total },
+    scores: { count: scores.count, total: BigInt(scores.total) },
     votes: (await core.vote_weight({ team_id: team })).result,
     criterionTallies,
   });

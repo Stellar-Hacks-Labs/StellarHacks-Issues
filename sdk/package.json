@@ -4,6 +4,9 @@
   "description": "Read, verify and rebuild a StelHacks hackathon result from chain data alone",
   "type": "module",
   "license": "Apache-2.0",
+  "bin": {
+    "stelhacks-verify": "./dist/verify/cli.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -26,6 +29,7 @@
     "check": "tsc --noEmit && tsc --noEmit -p tsconfig.examples.json",
     "test": "vitest run",
     "test:watch": "vitest",
+    "verify": "node ./dist/verify/cli.js",
     "bundle:check": "node dist/bundle/cli.js check"
   },
   "dependencies": {

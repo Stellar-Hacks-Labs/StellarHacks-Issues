@@ -862,6 +862,8 @@ Deferred work is recorded rather than omitted.
 | `StelHacks-PRD.md` | Product requirements document, in Turkish |
 | `docs/decisions.md` | Twenty five entries recording each departure from the requirements document with its rationale. Where the two conflict, this document governs |
 | `docs/deployments.md` | Addresses, wasm hashes, the reference instance, and defects identified on the live network |
+| `docs/verifier.md` | Independent verifier CLI: usage, what it reads, exit codes |
+| `docs/verifier-checks.md` | What each named verifier check proves when it passes or fails |
 | `docs/evidence-bundle.md` | How the proof page exports a self-contained evidence archive |
 | `docs/evidence-bundle-format.md` | On-disk layout and versioning of the evidence zip |
 | `docs/indexer-recovery.md` | Detecting ledger gaps and re-ingesting a bounded range into the durable log |
