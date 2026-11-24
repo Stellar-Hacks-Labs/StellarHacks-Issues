@@ -9,7 +9,13 @@ import { countriesByName } from "../../lib/countries";
 import { ProfileForm } from "./profile-form";
 import { SignOut } from "../components/session";
 import { currentUser, serverClient } from "../../lib/supabase/server";
-import { nameOf, profileOf, providerPicture, type Profile } from "../../lib/profile";
+import {
+  nameOf,
+  profileOf,
+  providerPicture,
+  type Profile,
+} from "../../lib/profile";
+import { NotificationPreferences } from "./notification-preferences";
 
 /**
  * Everything about the account somebody can change.
@@ -45,6 +51,17 @@ export default async function Account() {
      rather than an upsert. A page that had to create a profile would be a
      second, weaker place where identity begins. */
   const profile = db === null ? null : await profileOf(db, user.id);
+  const preferences =
+    db === null
+      ? []
+      : (
+          (
+            await db
+              .from("notification_preferences")
+              .select("type")
+              .eq("enabled", true)
+          ).data ?? []
+        ).map((row) => String(row.type));
 
   /*
     What the provider told us about them. The name is offered as a default and
@@ -107,6 +124,10 @@ export default async function Account() {
             <Prizes />
           </Block>
 
+          <Block title="Notifications">
+            <NotificationPreferences enabled={preferences} />
+          </Block>
+
           <Block title="Session">
             <SignOut />
           </Block>
@@ -133,7 +154,10 @@ function Block({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function pick(meta: Record<string, unknown> | undefined, field: string): string | null {
+function pick(
+  meta: Record<string, unknown> | undefined,
+  field: string,
+): string | null {
   const value = meta?.[field];
 
   return typeof value === "string" && value.trim().length > 0 ? value : null;
