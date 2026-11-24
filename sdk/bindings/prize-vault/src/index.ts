@@ -68,12 +68,15 @@ export type DataKey = {tag: "Core", values: void} | {tag: "Asset", values: void}
 export interface Client {
   /**
    * Construct and simulate a pay transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
-   * Sends part of the pool to a winner.
+   * Sends part of the pool to a winner, a refund target, or a surplus
+   * destination the bound hackathon named in its frozen rules.
    * 
    * The single line that matters is the authorization check: only the
    * hackathon this vault was bound to can call this. That contract computes
    * the ranking itself and refuses to accept one from anywhere else, so the
-   * path from a scorecard to a payment never leaves the chain.
+   * path from a scorecard to a payment never leaves the chain. Surplus
+   * routing uses this same entry point: the vault does not interpret routes,
+   * it only moves what the core instructs.
    */
   pay: ({to, amount}: {to: string, amount: i128}, options?: MethodOptions) => Promise<AssembledTransaction<Result<void>>>
 
@@ -140,7 +143,7 @@ export class Client extends ContractClient {
         "AAAABQAAAC9UaGUgdmF1bHQgZXhpc3RzIGFuZCBpcyBib3VuZCB0byBpdHMgaGFja2F0aG9uLgAAAAAAAAAAB0NyZWF0ZWQAAAAAAQAAAAdjcmVhdGVkAAAAAAIAAAAAAAAABGNvcmUAAAATAAAAAQAAAAAAAAAFYXNzZXQAAAAAAAATAAAAAAAAAAI=",
         "AAAABQAAAOBNb25leSBhcnJpdmVkLgoKVGhlIGRlcG9zaXRvciBpcyBhIHRvcGljIGJlY2F1c2UgYSBzcG9uc29yIHdhbnRzIHRvIHBvaW50IGF0IHRoZWlyIG93bgpjb250cmlidXRpb24sIGFuZCB0aGUgcnVubmluZyBiYWxhbmNlIHRyYXZlbHMgYWxvbmcgc28gYSByZWFkZXIgbmV2ZXIgaGFzIHRvCmFkZCB0aGUgZGVwb3NpdHMgdXAgdGhlbXNlbHZlcyB0byBrbm93IHdoZXJlIHRoZSBwb29sIHN0b29kLgAAAAAAAAAJRGVwb3NpdGVkAAAAAAAAAQAAAAlkZXBvc2l0ZWQAAAAAAAADAAAAAAAAAARmcm9tAAAAEwAAAAEAAAAAAAAABmFtb3VudAAAAAAACwAAAAAAAAAAAAAAB2JhbGFuY2UAAAAACwAAAAAAAAAC",
         "AAAAAgAAAO5XaGF0IHRoZSB2YXVsdCBzdG9yZXMuCgpCb3RoIGVudHJpZXMgYXJlIHdyaXR0ZW4gb25jZSBhdCBjcmVhdGlvbiBhbmQgbmV2ZXIgYWdhaW4uIEEgdmF1bHQgd2hvc2UKaGFja2F0aG9uIG9yIGFzc2V0IGNvdWxkIGJlIGNoYW5nZWQgbGF0ZXIgd291bGQgYmUgYSB2YXVsdCB3aG9zZSBkZXBvc2l0cwptZWFuIG5vdGhpbmcsIHNpbmNlIHRoZSBtb25leSBjb3VsZCBiZSByZWRpcmVjdGVkIGFmdGVyIGl0IGFycml2ZWQuAAAAAAAAAAAAB0RhdGFLZXkAAAAAAgAAAAAAAABOVGhlIGhhY2thdGhvbiB0aGlzIHZhdWx0IHBheXMgZm9yLiBUaGUgb25seSBhZGRyZXNzIGFsbG93ZWQgdG8gbW92ZQptb25leSBvdXQuAAAAAAAEQ29yZQAAAAAAAAAvVGhlIHRva2VuIHRoZSBwcml6ZSBpcyBkZW5vbWluYXRlZCBhbmQgcGFpZCBpbi4AAAAABUFzc2V0AAAA",
-        "AAAAAAAAATFTZW5kcyBwYXJ0IG9mIHRoZSBwb29sIHRvIGEgd2lubmVyLgoKVGhlIHNpbmdsZSBsaW5lIHRoYXQgbWF0dGVycyBpcyB0aGUgYXV0aG9yaXphdGlvbiBjaGVjazogb25seSB0aGUKaGFja2F0aG9uIHRoaXMgdmF1bHQgd2FzIGJvdW5kIHRvIGNhbiBjYWxsIHRoaXMuIFRoYXQgY29udHJhY3QgY29tcHV0ZXMKdGhlIHJhbmtpbmcgaXRzZWxmIGFuZCByZWZ1c2VzIHRvIGFjY2VwdCBvbmUgZnJvbSBhbnl3aGVyZSBlbHNlLCBzbyB0aGUKcGF0aCBmcm9tIGEgc2NvcmVjYXJkIHRvIGEgcGF5bWVudCBuZXZlciBsZWF2ZXMgdGhlIGNoYWluLgAAAAAAAANwYXkAAAAAAgAAAAAAAAACdG8AAAAAABMAAAAAAAAABmFtb3VudAAAAAAACwAAAAEAAAPpAAAAAgAAAAM=",
+        "AAAAAAAAAgJTZW5kcyBwYXJ0IG9mIHRoZSBwb29sIHRvIGEgd2lubmVyLCBhIHJlZnVuZCB0YXJnZXQsIG9yIGEgc3VycGx1cwpkZXN0aW5hdGlvbiB0aGUgYm91bmQgaGFja2F0aG9uIG5hbWVkIGluIGl0cyBmcm96ZW4gcnVsZXMuCgpUaGUgc2luZ2xlIGxpbmUgdGhhdCBtYXR0ZXJzIGlzIHRoZSBhdXRob3JpemF0aW9uIGNoZWNrOiBvbmx5IHRoZQpoYWNrYXRob24gdGhpcyB2YXVsdCB3YXMgYm91bmQgdG8gY2FuIGNhbGwgdGhpcy4gVGhhdCBjb250cmFjdCBjb21wdXRlcwp0aGUgcmFua2luZyBpdHNlbGYgYW5kIHJlZnVzZXMgdG8gYWNjZXB0IG9uZSBmcm9tIGFueXdoZXJlIGVsc2UsIHNvIHRoZQpwYXRoIGZyb20gYSBzY29yZWNhcmQgdG8gYSBwYXltZW50IG5ldmVyIGxlYXZlcyB0aGUgY2hhaW4uIFN1cnBsdXMKcm91dGluZyB1c2VzIHRoaXMgc2FtZSBlbnRyeSBwb2ludDogdGhlIHZhdWx0IGRvZXMgbm90IGludGVycHJldCByb3V0ZXMsCml0IG9ubHkgbW92ZXMgd2hhdCB0aGUgY29yZSBpbnN0cnVjdHMuAAAAAAADcGF5AAAAAAIAAAAAAAAAAnRvAAAAAAATAAAAAAAAAAZhbW91bnQAAAAAAAsAAAABAAAD6QAAAAIAAAAD",
         "AAAAAAAAACJUaGUgaGFja2F0aG9uIHRoaXMgdmF1bHQgcGF5cyBmb3IuAAAAAAAEY29yZQAAAAAAAAABAAAD6QAAABMAAAAD",
         "AAAAAAAAACZUaGUgdG9rZW4gdGhlIHByaXplIGlzIGRlbm9taW5hdGVkIGluLgAAAAAABWFzc2V0AAAAAAAAAAAAAAEAAAPpAAAAEwAAAAM=",
         "AAAAAAAAADFCaW5kcyBhIG5ldyB2YXVsdCB0byBvbmUgaGFja2F0aG9uIGFuZCBvbmUgYXNzZXQuAAAAAAAABmNyZWF0ZQAAAAAAAgAAAAAAAAAEY29yZQAAABMAAAAAAAAABWFzc2V0AAAAAAAAEwAAAAEAAAPpAAAAAgAAAAM=",

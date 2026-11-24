@@ -53,12 +53,15 @@ impl PrizeVault {
         Ok(())
     }
 
-    /// Sends part of the pool to a winner.
+    /// Sends part of the pool to a winner, a refund target, or a surplus
+    /// destination the bound hackathon named in its frozen rules.
     ///
     /// The single line that matters is the authorization check: only the
     /// hackathon this vault was bound to can call this. That contract computes
     /// the ranking itself and refuses to accept one from anywhere else, so the
-    /// path from a scorecard to a payment never leaves the chain.
+    /// path from a scorecard to a payment never leaves the chain. Surplus
+    /// routing uses this same entry point: the vault does not interpret routes,
+    /// it only moves what the core instructs.
     pub fn pay(env: Env, to: Address, amount: i128) -> Result<(), Error> {
         if amount <= 0 {
             return Err(Error::AmountNotPositive);

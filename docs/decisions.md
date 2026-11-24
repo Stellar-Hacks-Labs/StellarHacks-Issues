@@ -552,6 +552,29 @@ total it was meant to place was never part of what its voter signed.
 
 ---
 
+## 26. Undirected leftover leaves through a declared surplus route
+
+**The gap was** that every route out of the vault was tied to a prize position,
+so an undirected deposit beyond the table stayed in the vault at closure.
+Asserted by `a_surplus_beyond_the_prize_table_has_no_route_out_yet`.
+
+**Decided.** The sponsorship policy freezes a `SurplusRoute` before the lock:
+pro rata across positions, return to a declared address, or roll forward into a
+named next vault. Settlement computes the leftover as vault balance minus what
+unpaid positions and the unsettled fee still claim, then walks the route.
+`complete` refuses while anything remains.
+
+**Why.** Accepting undirected deposits without a way out stranded sponsors who
+over-funded an event. Naming the route after the lock would let an organizer
+pick a destination once they already knew who paid. Freezing it with the rest
+keeps the bargain the participant read.
+
+**What this is not.** Proportional refunds to depositors on cancellation, which
+decision 16 still refuses: the vault does not remember who deposited what for
+undirected money, and directed sponsorships already refund from their own ledger.
+
+---
+
 ## Still open
 
 - Team structure: maximum size, who sets the in team prize shares, whether one

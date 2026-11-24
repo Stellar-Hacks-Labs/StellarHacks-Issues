@@ -1,5 +1,7 @@
 # Sealer
 
+The read-only `/audit` and `/audit/checkpoints` routes expose hash-chained intake evidence. Verification is documented in `../../docs/sealer-audit-verification.md`.
+
 Holds Sub Rosa time-lock ciphertext for scorecards and ballots during judging,
 and publishes one digest committing to all signed leaves when the window closes.
 

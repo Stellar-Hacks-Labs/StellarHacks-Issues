@@ -5,13 +5,20 @@ signs nothing: it can write down what the chain said, and it cannot make the
 chain say anything.
 
 ```bash
-npx tsx src/index.ts <contract id>            # follow it
-npx tsx src/index.ts <contract id> --once     # one pass
-npx tsx src/index.ts <contract id> --rebuild  # throw the projections away and rebuild
+npx tsx src/index.ts <contract id>                 # follow it
+npx tsx src/index.ts <contract id> --once          # one pass
+npx tsx src/index.ts <contract id> --rebuild       # throw the projections away and rebuild
+npx tsx src/index.ts <contract id> --detect-gaps   # record unscanned ledger ranges
+npx tsx src/index.ts <contract id> --reingest A B  # re-read ledgers A..B (inclusive)
+npx tsx src/index.ts <contract id> --check         # compare projections with contract state
 ```
 
 Point it at a `hackathon-core` instance. A vault has its own events and no
 hackathon of its own to describe.
+
+Recovery and consistency are documented in `docs/indexer-recovery.md` and
+`docs/indexer-consistency.md`. Gap and check rows live in `indexer_gaps` and
+`indexer_consistency_checks`, both reachable only by the service role.
 
 ## The shape of a pass
 

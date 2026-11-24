@@ -1,7 +1,10 @@
 import { rpc } from "@stellar/stellar-sdk";
 
+import { latestCheck } from "./consistency.js";
 import { settings } from "./config.js";
 import { resumeFrom } from "./cursor.js";
+import { openGaps } from "./gaps.js";
+import { summarizeConsistency, type HealthConsistency } from "./report.js";
 
 const server = new rpc.Server(settings.rpcUrl);
 
@@ -19,22 +22,38 @@ export interface Health {
    * and the gap needs an archive rather than patience.
    */
   strandedBehindRetention: boolean;
+  /** Open gap rows still waiting on a re-ingest. */
+  openGapCount: number;
+  /** Newest consistency check, if one has ever run for this contract. */
+  consistency: HealthConsistency;
 }
 
 /**
- * How far behind the indexer is, in ledgers.
+ * How far behind the indexer is, in ledgers, plus the latest recovery signals.
  *
  * Reported in ledgers rather than seconds because ledgers are what the cursor
  * counts and what the gap is measured in; converting to a duration would put a
  * guess about ledger timing between the number and the thing it describes.
  */
 export async function health(contract: string): Promise<Health> {
-  const [cursor, node] = await Promise.all([resumeFrom(contract), server.getHealth()]);
+  const [cursor, node, gaps, check] = await Promise.all([
+    resumeFrom(contract),
+    server.getHealth(),
+    openGaps(contract),
+    latestCheck(contract),
+  ]);
 
   return {
     cursor,
     latest: node.latestLedger,
     lag: Math.max(0, node.latestLedger - cursor),
     strandedBehindRetention: cursor > 0 && cursor < node.oldestLedger,
+    openGapCount: gaps.length,
+    consistency: summarizeConsistency(
+      check?.checked_at ?? null,
+      check === null
+        ? null
+        : { ok: check.ok, mismatches: check.mismatches },
+    ),
   };
 }

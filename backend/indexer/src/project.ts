@@ -230,6 +230,24 @@ export function project(events: readonly ProjectedEvent[], reads: readonly Store
         pay(payments, contract, event, text(field["track"]), organizerOf(state, contract), PaymentKind.Swept);
         break;
 
+      case "SurplusSettled": {
+        // Undirected leftover left along the frozen route. Track is empty
+        // because the money was never aimed at a position; the recipient is
+        // whoever the constitution named, or the core itself for pro rata.
+        const recipient = text(field["to"]);
+        payments.set(key(contract, "", "0", recipient), {
+          contract_id: contract,
+          track: "",
+          rank: 0,
+          recipient,
+          amount: String(field["amount"]),
+          kind: PaymentKind.Returned,
+          ledger: event.ledger,
+          tx_hash: bytes(event.tx_hash),
+        });
+        break;
+      }
+
       default:
         // Everything else is recorded in `chain_events` and shapes no derived
         // row. An event this build does not recognise is not dropped, because

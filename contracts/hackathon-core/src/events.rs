@@ -829,3 +829,26 @@ pub fn share_swept(env: &Env, track: &Symbol, rank: u32, member: &Address, amoun
     }
     .publish(env);
 }
+
+/// Undirected leftover left the vault along the route the constitution named.
+//
+// The destination travels as a topic so a reader following one address sees
+// every surplus that landed there, and the amount travels in the payload so
+// the proof page can show the leftover without re-deriving the prize table.
+// A zero amount is still published: an event that emptied with nothing left
+// over is distinguishable from one whose surplus has not been settled yet.
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SurplusSettled {
+    #[topic]
+    pub to: Address,
+    pub amount: i128,
+}
+
+pub fn surplus_settled(env: &Env, to: &Address, amount: i128) {
+    SurplusSettled {
+        to: to.clone(),
+        amount,
+    }
+    .publish(env);
+}

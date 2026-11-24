@@ -2,6 +2,8 @@ import { Console } from "./console";
 import { Measure } from "../../components/primitives";
 import { currentUser } from "../../../lib/supabase/server";
 import { presentationOf } from "../../../lib/chain";
+import Link from "next/link";
+import { DeadLetterNotice } from "./dead-letter-notice";
 
 /**
  * Running a hackathon, keyed on the contract rather than on a name.
@@ -23,12 +25,17 @@ import { presentationOf } from "../../../lib/chain";
 
 export const dynamic = "force-dynamic";
 
-export default async function Manage({ params }: PageProps<"/manage/[contract]">) {
+export default async function Manage({
+  params,
+}: PageProps<"/manage/[contract]">) {
   const { contract } = await params;
 
   /* Both together: one dresses the panel, the other is whose folder the artwork
      in the details tab lands in. */
-  const [written, user] = await Promise.all([presentationOf(contract), currentUser()]);
+  const [written, user] = await Promise.all([
+    presentationOf(contract),
+    currentUser(),
+  ]);
 
   return (
     <main className="flex-1">
@@ -37,6 +44,12 @@ export default async function Manage({ params }: PageProps<"/manage/[contract]">
           banner, and holding it to a reading width left the whole thing in the
           middle of the screen with paper down both sides. */}
       <Measure wide className="py-10 pb-24 sm:py-12">
+        <p className="mb-6">
+          <Link className="underline" href={`/manage/${contract}/analytics`}>
+            View analytics
+          </Link>
+        </p>
+        <DeadLetterNotice contractId={contract} />
         <Console
           contractId={contract}
           written={written}

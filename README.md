@@ -850,7 +850,7 @@ Deferred work is recorded rather than omitted.
 |:--|:--|
 | Strict judging mode, in which judges commit and disclose on chain directly | Modelled, validated and hashed; no entry point implemented. The sealed mode is the default, and the strict mode is required only where the availability assumption of the collection service is unacceptable |
 | `RefundRoute::Depositors` as a declared route | Refused by validation rather than promised as a route the contract cannot walk. Cancellation is unaffected: recorded sponsor contributions are repaid in full from the sponsorship ledger. What is missing is proportional attribution for undirected deposits |
-| A pool exceeding the prize table | Every route out of the vault is tied to a prize position, so an undirected deposit beyond the table remains in the vault at closure. Asserted by `a_surplus_beyond_the_prize_table_has_no_route_out_yet`. Directed contributions are unaffected, since `sponsor_tier` and `sponsor_places` assign them to a position |
+| A pool exceeding the prize table | Resolved by decision 26: `SponsorshipPolicy.surplus` freezes a pro rata, return-to, or roll-forward route before the lock, and settlement empties the vault along it. Directed contributions remain unaffected |
 | Missing judge fallback | Quorum is enforced by excluding projects below quorum from the ranking; the fallback policy is unwritten |
 
 ## Documentation index
@@ -864,6 +864,8 @@ Deferred work is recorded rather than omitted.
 | `docs/deployments.md` | Addresses, wasm hashes, the reference instance, and defects identified on the live network |
 | `docs/evidence-bundle.md` | How the proof page exports a self-contained evidence archive |
 | `docs/evidence-bundle-format.md` | On-disk layout and versioning of the evidence zip |
+| `docs/indexer-recovery.md` | Detecting ledger gaps and re-ingesting a bounded range into the durable log |
+| `docs/indexer-consistency.md` | Comparing projections with live contract state after an outage |
 | Layer documents | `backend/`, `frontend/`, `sdk/` and `fixtures/`, and one per service |
 
 Three codebase conventions are stated here because they explain the structure a
