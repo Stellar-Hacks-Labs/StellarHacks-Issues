@@ -9,9 +9,13 @@
     "dev:indexer": "npm start --prefix indexer --",
     "dev:sealer": "npm start --prefix sealer",
     "dev:clock": "npm start --prefix clock",
-    "dev:reviewer": "npm start --prefix reviewer"
+    "dev:reviewer": "npm start --prefix reviewer",
+    "test:shared": "npm test --prefix shared"
   },
   "devDependencies": {
     "dotenv": "^16.4.7"
+  },
+  "dependencies": {
+    "@stelhacks/shared": "file:./shared"
   }
 }

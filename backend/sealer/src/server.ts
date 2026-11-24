@@ -1,7 +1,9 @@
+import { newCorrelationId, withCorrelationId } from "@stelhacks/shared";
 import { createServer } from "node:http";
 
 import { settings } from "./config.js";
 import { sealer } from "./core.js";
+import { log, tracker } from "./health.js";
 import { cors, route } from "./routes.js";
 import { rounds } from "./rounds.js";
 
@@ -31,17 +33,23 @@ const routes = createServer((request, response) => {
   let body = "";
   request.on("data", (chunk) => (body += chunk));
   request.on("end", () => {
-    void route({
-      method: request.method ?? "GET",
-      path: url.pathname,
-      query: url.searchParams,
-      body,
-    }).then((said) => answer(said.status, said.body));
+    void withCorrelationId(newCorrelationId(), async () => {
+      const said = await route({
+        method: request.method ?? "GET",
+        path: url.pathname,
+        query: url.searchParams,
+        body,
+      });
+      answer(said.status, said.body);
+    });
   });
 });
 
 routes.listen(settings.port, () => {
-  console.log(`sealing for ${sealer.publicKey()} on :${settings.port}`);
+  log.info("sealing service listening", {
+    sealer: sealer.publicKey(),
+    port: settings.port,
+  });
 });
 
 /*
@@ -60,13 +68,19 @@ routes.listen(settings.port, () => {
 */
 async function keep(): Promise<void> {
   for (;;) {
-    try {
-      for (const said of await rounds()) {
-        console.error(said);
+    await withCorrelationId(newCorrelationId(), async () => {
+      try {
+        for (const said of await rounds()) {
+          log.error(said);
+        }
+        tracker.noteSuccess();
+      } catch (thrown) {
+        tracker.noteError(thrown);
+        log.error("could not walk the hackathons", {
+          error: thrown instanceof Error ? thrown.message : String(thrown),
+        });
       }
-    } catch (thrown) {
-      console.error(`could not walk the hackathons: ${thrown}`);
-    }
+    });
 
     await new Promise((wake) => setTimeout(wake, settings.everyMs));
   }

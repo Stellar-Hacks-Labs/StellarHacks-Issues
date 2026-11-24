@@ -2,6 +2,7 @@ import { rpc } from "@stellar/stellar-sdk";
 import { type HackathonCore } from "@stelhacks/sdk";
 
 import { named, refusal } from "./due.js";
+import { log } from "./health.js";
 
 /**
  * Hands the money out once settlement is open, so nobody has to come and ask.
@@ -98,7 +99,13 @@ export async function payOut(core: HackathonCore, contract: string): Promise<Pai
 
       if (!reported.has(key)) {
         reported.add(key);
-        console.error(`${contract}: cannot pay ${member} for ${track} #${rank} yet, ${why}`);
+        log.error("cannot pay member yet", {
+          contract,
+          member,
+          track,
+          rank,
+          why,
+        });
       }
     }
   }

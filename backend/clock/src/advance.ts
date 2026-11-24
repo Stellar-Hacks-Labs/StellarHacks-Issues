@@ -4,6 +4,7 @@ import { HackathonCore } from "@stelhacks/sdk";
 
 import { settings } from "./config.js";
 import { CALLS, named, nothingToDo, refusal, type Call } from "./due.js";
+import { log } from "./health.js";
 import { payOut, type Paid } from "./payout.js";
 import { submitWithRetry, RetryExhaustedError } from "./retry.js";
 import { transitionStillDue } from "./idempotency.js";
@@ -105,6 +106,7 @@ export async function advance(contract: string): Promise<Done[]> {
       if (!(error instanceof RetryExhaustedError)) throw error;
       const message = error.lastError instanceof Error ? error.lastError.message : String(error.lastError);
       await writeDeadLetter({ contractId: contract, transition: call, lastError: message });
+      log.error("retry budget exhausted", { contract, call, lastError: message });
       done.push({ sent: false, call, because: "retry budget exhausted", expected: false });
     }
   }

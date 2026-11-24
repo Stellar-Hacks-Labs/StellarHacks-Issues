@@ -3,6 +3,7 @@ import { rpc, xdr } from "@stellar/stellar-sdk";
 
 import { settings } from "./config.js";
 import { decode } from "./decode.js";
+import { log } from "./health.js";
 import { gather } from "./reads.js";
 import { db } from "./supabase.js";
 import type { StoredEvent, StoredRead } from "./records.js";
@@ -75,7 +76,10 @@ async function ask(contract: string, startLedger: number) {
       return { page: { events: [], cursor: "" }, from: startLedger };
     }
 
-    console.warn(`${contract}: cursor fell behind the window, resuming at ${node.oldestLedger}`);
+    log.warn("cursor fell behind the window", {
+      contract,
+      resumeAt: node.oldestLedger,
+    });
 
     /*
       The ledger it actually started at, not the one it was asked for.

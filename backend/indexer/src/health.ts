@@ -1,12 +1,20 @@
-import { rpc } from "@stellar/stellar-sdk";
+import {
+  createHealthTracker,
+  createLogger,
+  createMetrics,
+  type ServiceHealth,
+} from "@stelhacks/shared";
 
-import { latestCheck } from "./consistency.js";
-import { settings } from "./config.js";
-import { resumeFrom } from "./cursor.js";
-import { openGaps } from "./gaps.js";
-import { summarizeConsistency, type HealthConsistency } from "./report.js";
+import type { HealthConsistency } from "./report.js";
 
-const server = new rpc.Server(settings.rpcUrl);
+/** Structured logger for the indexer process. */
+export const log = createLogger("indexer");
+
+/** Counters the follow loop and ingest path share. */
+export const metrics = createMetrics();
+
+/** Uniform health tracker; lag is filled from the chain-facing report. */
+export const tracker = createHealthTracker("indexer");
 
 export interface Health {
   cursor: number;
@@ -34,8 +42,19 @@ export interface Health {
  * Reported in ledgers rather than seconds because ledgers are what the cursor
  * counts and what the gap is measured in; converting to a duration would put a
  * guess about ledger timing between the number and the thing it describes.
+ *
+ * Chain and database clients load inside the call so importing this module for
+ * the uniform tracker and logger does not demand a configured environment.
  */
 export async function health(contract: string): Promise<Health> {
+  const { rpc } = await import("@stellar/stellar-sdk");
+  const { latestCheck } = await import("./consistency.js");
+  const { settings } = await import("./config.js");
+  const { resumeFrom } = await import("./cursor.js");
+  const { openGaps } = await import("./gaps.js");
+  const { summarizeConsistency } = await import("./report.js");
+
+  const server = new rpc.Server(settings.rpcUrl);
   const [cursor, node, gaps, check] = await Promise.all([
     resumeFrom(contract),
     server.getHealth(),
@@ -56,4 +75,15 @@ export async function health(contract: string): Promise<Health> {
         : { ok: check.ok, mismatches: check.mismatches },
     ),
   };
+}
+
+/**
+ * The uniform shape every service exposes, with indexer lag in ledgers.
+ *
+ * Chain-specific detail stays on `health(contract)`; this is what an operator
+ * compares across indexer, sealer, clock and reviewer without learning four
+ * dialects.
+ */
+export function serviceHealth(): ServiceHealth {
+  return tracker.report();
 }
