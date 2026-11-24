@@ -228,7 +228,21 @@ export interface Sponsorship {
   maxNewTracks: number;
   /** The least one contribution may carry, in whole units of the prize asset. */
   minBounty: string;
+  /**
+   * Where undirected leftover goes at closure.
+   *
+   * Defaults to pro rata so a form that never asks still freezes a route the
+   * vault can walk. Return and roll-forward need an address the organizer
+   * names before the lock.
+   */
+  surplus: DraftSurplus;
 }
+
+/** The surplus route as the create form carries it. */
+export type DraftSurplus =
+  | { kind: "pro-rata" }
+  | { kind: "return-to"; address: string }
+  | { kind: "roll-forward"; address: string };
 
 /**
  * What the form opens on: open to money, closed to new categories.
@@ -246,6 +260,7 @@ export const OPEN_TO_SPONSORS: Sponsorship = {
   topUps: true,
   maxNewTracks: 0,
   minBounty: "10",
+  surplus: { kind: "pro-rata" },
 };
 
 /**
@@ -445,6 +460,7 @@ export async function createArgs(organizer: string, draft: Draft) {
           ? toSmallestUnit(draft.sponsorship.minBounty)
           : BigInt(0),
       borrows_from: draft.tracks[0]?.id ?? "main",
+      surplus: encodeSurplus(draft.sponsorship.surplus),
     },
 
     /* The chain the contract walks when two projects tie. Highest single
@@ -543,4 +559,22 @@ export async function configureArgs(organizer: string, draft: Draft) {
   const [, constitution] = await createArgs(organizer, draft);
 
   return [constitution];
+}
+
+/**
+ * The surplus route as the contract's tagged union expects it.
+ *
+ * Pro rata carries no address. Return and roll-forward each carry one, and an
+ * empty address would freeze a destination nobody can pay — the form must
+ * refuse that before this encoder is reached.
+ */
+function encodeSurplus(surplus: DraftSurplus): unknown {
+  switch (surplus.kind) {
+    case "pro-rata":
+      return { tag: "ProRata", values: undefined };
+    case "return-to":
+      return { tag: "ReturnTo", values: [surplus.address] };
+    case "roll-forward":
+      return { tag: "RollForward", values: [surplus.address] };
+  }
 }

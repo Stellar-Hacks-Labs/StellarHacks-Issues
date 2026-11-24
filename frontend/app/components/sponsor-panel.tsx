@@ -21,6 +21,7 @@ import {
   type Position,
   type Split,
 } from "../../lib/sponsor";
+import { labelOf } from "../../lib/surplus";
 import { accept, assetOf, balanceOf, type PrizeAsset } from "../../lib/trustline";
 import type { Rules } from "../../lib/rules";
 import { titleOf } from "../../lib/words";
@@ -287,6 +288,12 @@ export function SponsorPanel({
             <h2 className="display text-[1.5rem] font-bold text-ink">
               Become a Sponsor for Hackathon
             </h2>
+
+            <p className="text-[0.875rem] leading-relaxed text-ink-faint">
+              Surplus route: {labelOf(rules.sponsorship.surplus)}. Aimed
+              contributions raise a named prize; anything left undirected
+              follows that route at closure.
+            </p>
 
             {/* Shown even when there is only one, which looks like asking
                 somebody to confirm the only answer and is not. The rank rows

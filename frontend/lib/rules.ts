@@ -62,15 +62,15 @@ export const VISIBILITY = ["Public", "Participants", "Restricted"] as const;
 /**
  * The constitution shape this build understands.
  *
- * It is six because the prize table stopped being the whole of the prize: a
- * hackathon created before that has no sponsorship door, and a build that
- * offered one would be offering a call its contract refuses. The number is
- * here rather than imported from the contract because
- * nothing on this side can import Rust; it has to match `CONSTITUTION_VERSION`
- * in `contracts/hackathon-core/src/constitution/document.rs`, and the fixtures
+ * It is seven because undirected deposits beyond the prize table gained a
+ * declared route out. A hackathon created before that has no surplus field,
+ * and a build that assumed one would misread where leftover money goes. The
+ * number is here rather than imported from the contract because nothing on
+ * this side can import Rust; it has to match `CONSTITUTION_VERSION` in
+ * `contracts/hackathon-core/src/constitution/document.rs`, and the fixtures
  * both languages read are what catch it when it does not.
  */
-export const CONSTITUTION_VERSION = 6;
+export const CONSTITUTION_VERSION = 7;
 
 export interface Rules {
   /**
@@ -178,7 +178,18 @@ export interface Sponsorship {
   minBounty: bigint;
   /** The track a sponsored one takes its rubric and its judges from. */
   borrowsFrom: string;
+  /** Where undirected leftover beyond the prize table goes at closure. */
+  surplus: SurplusRoute;
 }
+
+/**
+ * Where undirected deposits beyond the prize table go once every position has
+ * been settled.
+ */
+export type SurplusRoute =
+  | { kind: "pro-rata" }
+  | { kind: "return-to"; address: string }
+  | { kind: "roll-forward"; address: string };
 
 export async function rulesFor(contractId: string): Promise<Rules | null> {
   const rpcUrl = process.env["NEXT_PUBLIC_STELLAR_RPC_URL"];
@@ -336,7 +347,43 @@ function sponsorshipOf(raw: unknown): Sponsorship {
     maxNewTracks: Number(policy["max_new_tracks"] ?? 0),
     minBounty: BigInt((policy["min_bounty"] as bigint | undefined) ?? 0),
     borrowsFrom: typeof policy["borrows_from"] === "string" ? policy["borrows_from"] : "",
+    surplus: surplusOf(policy["surplus"]),
   };
+}
+
+/**
+ * Where leftover undirected money goes, defended like everything else that
+ * crosses the decoder.
+ *
+ * An absent field reads as pro rata rather than as nothing, which is the safe
+ * end here: every vault still accepts undirected deposits, and assuming a
+ * route that empties it is safer than assuming the money is stranded.
+ */
+function surplusOf(raw: unknown): SurplusRoute {
+  if (raw === null || raw === undefined) {
+    return { kind: "pro-rata" };
+  }
+
+  if (typeof raw === "string" || typeof raw === "number") {
+    return { kind: "pro-rata" };
+  }
+
+  const tagged = raw as { tag?: string; values?: unknown };
+  if (tagged.tag === "ProRata" || raw === "ProRata") {
+    return { kind: "pro-rata" };
+  }
+
+  const values = Array.isArray(tagged.values) ? tagged.values : [];
+  const address = typeof values[0] === "string" ? values[0] : "";
+
+  if (tagged.tag === "ReturnTo") {
+    return { kind: "return-to", address };
+  }
+  if (tagged.tag === "RollForward") {
+    return { kind: "roll-forward", address };
+  }
+
+  return { kind: "pro-rata" };
 }
 
 /**

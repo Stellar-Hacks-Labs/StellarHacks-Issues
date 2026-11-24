@@ -12,7 +12,7 @@ use crate::ballot::VoteChoice;
 use crate::constitution::{
     Constitution, Criterion, DiscretionPolicy, ExtensionPolicy, JudgeAssignment, JudgingMode,
     PlatformFee, PrizeTier, ProjectVisibility, RefundRoute, RegistrationPolicy, Schedule,
-    SettlementMode, SponsorshipPolicy, TeamPolicy, TieBreakRule, Track, VotePolicy,
+    SettlementMode, SponsorshipPolicy, SurplusRoute, TeamPolicy, TieBreakRule, Track, VotePolicy,
     CONSTITUTION_VERSION, DEFAULT_MAX_CHOICES, DEFAULT_VOTE_POWER,
 };
 use crate::scorecard::{CriterionScore, Scorecard};
@@ -144,6 +144,7 @@ pub fn sample_constitution_paying(env: &Env, prize_asset: Address) -> Constituti
             max_new_tracks: 2,
             min_bounty: 100,
             borrows_from: symbol_short!("payments"),
+            surplus: SurplusRoute::ProRata,
         },
         tie_break: vec![env, TieBreakRule::JudgeScore, TieBreakRule::SubmissionOrder],
         discretion: DiscretionPolicy {
@@ -246,6 +247,7 @@ pub fn canonical_constitution(env: &Env) -> Constitution {
             max_new_tracks: 2,
             min_bounty: 100,
             borrows_from: symbol_short!("payments"),
+            surplus: SurplusRoute::ProRata,
         },
         tie_break: vec![env, TieBreakRule::JudgeScore, TieBreakRule::SubmissionOrder],
         discretion: DiscretionPolicy {

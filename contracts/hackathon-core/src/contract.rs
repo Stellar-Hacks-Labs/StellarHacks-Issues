@@ -4,8 +4,8 @@ use soroban_sdk::{
 
 use crate::ballot::{validate_ballot, VoteChoice};
 use crate::constitution::{
-    total_prize_amount, validate_prize_tiers, Constitution, Deadline, PrizeTier, TeamPolicy,
-    TieBreakRule, Track,
+    total_prize_amount, validate_prize_tiers, Constitution, Deadline, PrizeTier, SurplusRoute,
+    TeamPolicy, TieBreakRule, Track,
 };
 use crate::errors::Error;
 use crate::events;
@@ -2041,6 +2041,12 @@ impl HackathonCore {
             return Err(Error::SettlementPaused);
         }
 
+        /* Pro rata has to land before the first payout, or the leftover would
+        sit in the vault after every position had already been paid at the
+        unboosted amount. Deferred until here rather than open_settlement so a
+        top-up that arrives during the safety window still reaches the table. */
+        Self::ensure_pro_rata(&env)?;
+
         let (team, share) = Self::share_due(&env, &track, rank, &member)?;
 
         Self::hand_over(&env, &track, rank, &member, &member, share, team.size())?;
@@ -2076,6 +2082,8 @@ impl HackathonCore {
         if state.settlement_paused {
             return Err(Error::SettlementPaused);
         }
+
+        Self::ensure_pro_rata(&env)?;
 
         // Reusing the prize error rather than adding a case. The spec caps an
         // error enum at fifty and this contract is at forty eight; a distinct
@@ -2201,6 +2209,156 @@ impl HackathonCore {
         Ok(())
     }
 
+    /// Routes undirected leftover out of the vault along the declared path.
+    //
+    // Anyone may call it, like the prize payments beside it. The destination
+    // was frozen at the lock, so there is nothing left for anybody to decide
+    // and making this the organizer's call would only give them the power to
+    // sit on money nobody can otherwise reach.
+    //
+    // Pro rata is usually applied by [`Self::open_settlement`]. This entry
+    // point still accepts it so a caller who opened settlement before that
+    // change, or who wants to re-check a zero surplus, has a single place to
+    // ask. Return and roll-forward routes must wait until every position and
+    // the platform fee have cleared: paying earlier would take money still
+    // owed to a winner.
+    pub fn settle_surplus(env: Env) -> Result<i128, Error> {
+        let state = storage::load_state(&env)?;
+        if state.phase != Phase::Settlement {
+            return Err(Error::WrongPhase);
+        }
+        if state.settlement_paused {
+            return Err(Error::SettlementPaused);
+        }
+
+        Self::route_surplus(&env)
+    }
+
+    /// How much of the vault sits above what the prize table and the fee still
+    /// owe, or zero when nothing is left over.
+    pub fn surplus(env: Env) -> Result<i128, Error> {
+        Self::surplus_of(&env)
+    }
+
+    /// Whether the declared surplus route has already run.
+    pub fn surplus_settled(env: Env) -> bool {
+        storage::is_surplus_settled(&env)
+    }
+
+    /// Walks the frozen surplus route once.
+    fn route_surplus(env: &Env) -> Result<i128, Error> {
+        if storage::is_surplus_settled(env) {
+            return Err(Error::PrizeAlreadyPaid);
+        }
+
+        let constitution = storage::load_constitution(env)?;
+        let amount = Self::surplus_of(env)?;
+
+        match &constitution.sponsorship.surplus {
+            SurplusRoute::ProRata => {
+                if amount > 0 {
+                    Self::apply_pro_rata(env, amount)?;
+                }
+                // Pro rata leaves the money in the vault until prizes pay it
+                // out. The event names the core itself as destination because
+                // no outside address received anything yet; the proof page
+                // reads the bonuses rather than a transfer.
+                events::surplus_settled(env, &env.current_contract_address(), amount);
+            }
+            SurplusRoute::ReturnTo(to) | SurplusRoute::RollForward(to) => {
+                for tier in Self::payable_positions(env, &constitution).iter() {
+                    if !storage::is_paid(env, &tier.track, tier.rank) {
+                        return Err(Error::SettlementIncomplete);
+                    }
+                }
+                if !storage::is_platform_fee_settled(env) {
+                    return Err(Error::SettlementIncomplete);
+                }
+
+                if amount > 0 {
+                    let vault = storage::load_vault(env)?;
+                    VaultClient::new(env, &vault).pay(to, &amount);
+                }
+
+                events::surplus_settled(env, to, amount);
+            }
+        }
+
+        storage::mark_surplus_settled(env);
+        Ok(amount)
+    }
+
+    /// Spreads leftover across every payable position in proportion to worth.
+    //
+    // Remainder units go to the earliest positions one each, the same rule
+    // equal prize shares use: no two positions differ by more than one unit,
+    // and the vault's leftover is fully accounted for before any payout runs.
+    fn apply_pro_rata(env: &Env, surplus: i128) -> Result<(), Error> {
+        let constitution = storage::load_constitution(env)?;
+        let positions = Self::payable_positions(env, &constitution);
+
+        let mut total = 0i128;
+        let mut worths = Vec::new(env);
+        for tier in positions.iter() {
+            let worth = Self::worth_of(env, &tier.track, tier.rank)?;
+            worths.push_back(worth);
+            total = total.checked_add(worth).ok_or(Error::ConstitutionInvalid)?;
+        }
+
+        if total == 0 || positions.is_empty() {
+            return Err(Error::ConstitutionInvalid);
+        }
+
+        let mut allocated = 0i128;
+        for index in 0..positions.len() {
+            let worth = worths.get(index).unwrap();
+            let share = (surplus * worth) / total;
+            let tier = positions.get(index).unwrap();
+            if share > 0 {
+                storage::add_bonus(env, &tier.track, tier.rank, share);
+            }
+            allocated = allocated
+                .checked_add(share)
+                .ok_or(Error::ConstitutionInvalid)?;
+        }
+
+        let mut remainder = surplus - allocated;
+        let mut index = 0u32;
+        while remainder > 0 && index < positions.len() {
+            let tier = positions.get(index).unwrap();
+            storage::add_bonus(env, &tier.track, tier.rank, 1);
+            remainder -= 1;
+            index += 1;
+        }
+
+        Ok(())
+    }
+
+    /// Vault balance minus what unpaid positions and the unsettled fee still
+    /// claim.
+    fn surplus_of(env: &Env) -> Result<i128, Error> {
+        let vault = storage::load_vault(env)?;
+        let balance = VaultClient::new(env, &vault).balance();
+        let constitution = storage::load_constitution(env)?;
+
+        let mut owed = 0i128;
+        for tier in Self::payable_positions(env, &constitution).iter() {
+            if storage::is_paid(env, &tier.track, tier.rank) {
+                continue;
+            }
+            owed = owed
+                .checked_add(Self::worth_of(env, &tier.track, tier.rank)?)
+                .ok_or(Error::ConstitutionInvalid)?;
+        }
+
+        if !storage::is_platform_fee_settled(env) {
+            let fee = constitution.platform_fee_amount()? + storage::load_sponsored_fee(env);
+            owed = owed.checked_add(fee).ok_or(Error::ConstitutionInvalid)?;
+        }
+
+        Ok((balance - owed).max(0))
+    }
+
     /// Holds the money where it is, with a reason.
     //
     // Scores are untouchable either way. This stops payment and nothing else,
@@ -2301,6 +2459,8 @@ impl HackathonCore {
             return Err(Error::PrizeAlreadyPaid);
         }
 
+        Self::ensure_pro_rata(env)?;
+
         let constitution = storage::load_constitution(env)?;
         let claim_period = constitution.discretion.prize_claim_period;
 
@@ -2309,6 +2469,20 @@ impl HackathonCore {
         }
 
         Self::worth_of(env, track, rank)
+    }
+
+    /// Applies a pro rata surplus once, on the first settlement payment.
+    fn ensure_pro_rata(env: &Env) -> Result<(), Error> {
+        if storage::is_surplus_settled(env) {
+            return Ok(());
+        }
+
+        let constitution = storage::load_constitution(env)?;
+        if matches!(constitution.sponsorship.surplus, SurplusRoute::ProRata) {
+            Self::route_surplus(env)?;
+        }
+
+        Ok(())
     }
 
     /// Closes the hackathon for good.
@@ -2323,6 +2497,10 @@ impl HackathonCore {
     // and would make the platform the one party in this system whose money can
     // be stranded by finishing the event correctly. It is checked last, so the
     // failure a caller sees names the missing prize when both are outstanding.
+    //
+    // Undirected leftover is owed too. The surplus route was frozen with the
+    // rules, and a vault that still holds anything at closure is the gap this
+    // call exists to refuse.
     pub fn complete(env: Env) -> Result<(), Error> {
         let state = storage::load_state(&env)?;
         if state.phase != Phase::Settlement {
@@ -2337,6 +2515,15 @@ impl HackathonCore {
         }
 
         if !storage::is_platform_fee_settled(&env) {
+            return Err(Error::SettlementIncomplete);
+        }
+
+        if !storage::is_surplus_settled(&env) {
+            Self::route_surplus(&env)?;
+        }
+
+        let vault = storage::load_vault(&env)?;
+        if VaultClient::new(&env, &vault).balance() != 0 {
             return Err(Error::SettlementIncomplete);
         }
 
