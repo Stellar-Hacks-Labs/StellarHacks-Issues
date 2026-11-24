@@ -14,6 +14,9 @@
     }
   },
   "types": "./dist/index.d.ts",
+  "bin": {
+    "stelhacks-bundle": "./dist/bundle/cli.js"
+  },
   "files": [
     "dist"
   ],
@@ -26,7 +29,8 @@
     "check": "tsc --noEmit && tsc --noEmit -p tsconfig.examples.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify": "node ./dist/verify/cli.js"
+    "verify": "node ./dist/verify/cli.js",
+    "bundle:check": "node dist/bundle/cli.js check"
   },
   "dependencies": {
     "@stellar/stellar-sdk": "^14.5.0",

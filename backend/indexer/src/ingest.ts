@@ -128,6 +128,50 @@ export async function read(contract: string, after: number): Promise<Pass> {
 }
 
 /**
+ * Events (and the reads they prompt) inside an inclusive ledger range.
+ *
+ * Used by re-ingest. It pages until the scan has passed `to`, then drops
+ * anything that landed past the bound so a page that overshoots cannot widen
+ * the operator's request. The cursor is deliberately not moved: repairing a
+ * hole must not claim the head of the chain has been followed.
+ */
+export async function readRange(contract: string, fromLedger: number, toLedger: number): Promise<Pass> {
+  if (toLedger < fromLedger) {
+    return { events: [], reads: [], through: toLedger };
+  }
+
+  const events: StoredEvent[] = [];
+  let through = fromLedger - 1;
+  let start = fromLedger;
+
+  while (start <= toLedger) {
+    const { page, from } = await ask(contract, start);
+    const batch = page.events.map(toStored).filter((event) => event.ledger >= fromLedger && event.ledger <= toLedger);
+    events.push(...batch);
+
+    through = Math.min(toLedger, scannedThrough(page.cursor, from, batch));
+
+    if (through < start) {
+      // Standing still means the page could not be parsed into progress. Stop
+      // rather than loop on the same ledger forever.
+      break;
+    }
+
+    if (through >= toLedger || page.events.length === 0) {
+      break;
+    }
+
+    start = through + 1;
+  }
+
+  return {
+    events,
+    reads: await gather(contract, decode(events)),
+    through,
+  };
+}
+
+/**
  * The last ledger a page really covered.
  *
  * The cursor is a token of the form `<toid>-<index>`, and the toid packs the

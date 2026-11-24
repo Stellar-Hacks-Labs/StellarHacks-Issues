@@ -207,6 +207,19 @@ mod test {
         assert_ne!(hash_constitution(&env, &changed), original, "prize_tiers");
 
         let mut changed = base.clone();
+        changed.sponsorship.top_ups_allowed = !changed.sponsorship.top_ups_allowed;
+        assert_ne!(hash_constitution(&env, &changed), original, "sponsorship");
+
+        let mut changed = base.clone();
+        changed.sponsorship.surplus =
+            crate::constitution::SurplusRoute::ReturnTo(Address::generate(&env));
+        assert_ne!(
+            hash_constitution(&env, &changed),
+            original,
+            "sponsorship.surplus"
+        );
+
+        let mut changed = base.clone();
         changed.tie_break = vec![&env, TieBreakRule::SubmissionOrder];
         assert_ne!(hash_constitution(&env, &changed), original, "tie_break");
 

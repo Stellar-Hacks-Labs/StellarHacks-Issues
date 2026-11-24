@@ -1,0 +1,6 @@
+{
+  "covered": [{ "from": 1000, "to": 1500 }],
+  "cursor": 1500,
+  "oldestRpc": 900,
+  "expectedGaps": []
+}

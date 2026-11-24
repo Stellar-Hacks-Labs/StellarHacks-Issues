@@ -20,12 +20,12 @@ use prize_vault::PrizeVaultClient;
 use soroban_sdk::token::{StellarAssetClient, TokenClient};
 
 /// A hackathon carried all the way to a settled ranking.
-struct Settled {
-    fixture: Fixture,
-    vault: PrizeVaultClient<'static>,
-    token: TokenClient<'static>,
+pub(crate) struct Settled {
+    pub(crate) fixture: Fixture,
+    pub(crate) vault: PrizeVaultClient<'static>,
+    pub(crate) token: TokenClient<'static>,
     /// Team identifiers in the order they were entered.
-    teams: Vec<u32>,
+    pub(crate) teams: Vec<u32>,
 }
 
 impl Settled {
@@ -47,7 +47,15 @@ impl Settled {
 
     /// The same, with every team holding `size` people.
     fn through_reveal_with(size: u32) -> Settled {
-        let fixture = Fixture::funded_and_open();
+        Self::through_reveal_edited(size, |_| {})
+    }
+
+    /// The same path with one edit to the rules before they lock.
+    fn through_reveal_edited(
+        size: u32,
+        edit: impl FnOnce(&mut crate::constitution::Constitution),
+    ) -> Settled {
+        let fixture = Fixture::funded_and_open_with(edit);
         let env = fixture.env.clone();
         let schedule = fixture.client.state().schedule;
 
@@ -129,7 +137,7 @@ impl Settled {
     }
 
     /// The same hackathon with the safety window run out and settlement open.
-    fn open() -> Settled {
+    pub(crate) fn open() -> Settled {
         Settled::open_with(1)
     }
 
@@ -140,7 +148,7 @@ impl Settled {
     /// window allows and the one worth testing: a sponsor who arrived while the
     /// scorecards were already public still cannot have known who would win,
     /// because the ranking is not computed until `finalize_results`.
-    fn open_sponsored(amount: i128) -> Settled {
+    pub(crate) fn open_sponsored(amount: i128) -> Settled {
         let settled = Settled::through_reveal();
         let env = settled.fixture.env.clone();
 
@@ -170,7 +178,15 @@ impl Settled {
 
     /// The same, with every team holding `size` people.
     fn open_with(size: u32) -> Settled {
-        let settled = Settled::through_reveal_with(size);
+        Self::open_edited(size, |_| {})
+    }
+
+    /// Settlement open under rules that differ in one frozen field.
+    pub(crate) fn open_edited(
+        size: u32,
+        edit: impl FnOnce(&mut crate::constitution::Constitution),
+    ) -> Settled {
+        let settled = Settled::through_reveal_edited(size, edit);
         settled.fixture.client.finalize_results();
         let hold = 24 * 60 * 60;
         let now = settled.fixture.client.state().finalized_at + hold;
@@ -251,7 +267,7 @@ impl Settled {
         proofs
     }
 
-    fn captain(&self, team: u32) -> Address {
+    pub(crate) fn captain(&self, team: u32) -> Address {
         self.fixture.client.team_by_id(&team).captain
     }
 
@@ -260,7 +276,7 @@ impl Settled {
     /// Every team in this harness is a solo entry, so the captain is the whole
     /// team and one payment settles the position. The team splits are exercised
     /// in `shared_prizes`, where the teams have more than one person in them.
-    fn winner(&self, track: &Symbol, rank: u32) -> Address {
+    pub(crate) fn winner(&self, track: &Symbol, rank: u32) -> Address {
         self.captain(self.winner_team(track, rank))
     }
 
@@ -1245,16 +1261,41 @@ mod conservation {
         );
     }
 
-    /// A top up arriving mid event raises the pool and nothing else. It does
-    /// not raise what any winner is owed, because the prize table was locked
-    /// before anybody entered.
+    /// A top up arriving after settlement opens raises the pool. Under the
+    /// default pro rata route the first payout absorbs that leftover into the
+    /// prize table, so the winner takes more than the frozen tier alone.
     #[test]
-    fn a_top_up_raises_the_pool_without_raising_any_prize() {
+    fn a_top_up_raises_the_pool_and_pro_rata_raises_the_prize() {
         let settled = Settled::open();
         let first = settled.captain(settled.teams.get(0).unwrap());
 
         top_up(&settled, 2_500);
         assert_eq!(settled.vault.balance(), 13_000);
+
+        let paid =
+            settled
+                .fixture
+                .client
+                .settle_prize(&payments(), &1, &settled.winner(&payments(), 1));
+
+        assert!(paid > 5_000, "pro rata top-up reaches the first position");
+        assert_eq!(settled.token.balance(&first), paid);
+        assert_eq!(settled.vault.balance(), 13_000 - paid);
+    }
+
+    /// Returning the surplus leaves prizes at their frozen amounts until the
+    /// leftover is paid to the declared address.
+    #[test]
+    fn returning_surplus_leaves_prizes_unchanged_until_routed() {
+        use crate::constitution::SurplusRoute;
+
+        let settled = Settled::open_edited(1, |constitution| {
+            let dest = constitution.platform_fee.collector.clone();
+            constitution.sponsorship.surplus = SurplusRoute::ReturnTo(dest);
+        });
+        let first = settled.captain(settled.teams.get(0).unwrap());
+
+        top_up(&settled, 2_500);
 
         assert_eq!(
             settled
@@ -1264,33 +1305,6 @@ mod conservation {
             5_000
         );
         assert_eq!(settled.token.balance(&first), 5_000);
-        assert_eq!(settled.vault.balance(), 8_000);
-    }
-
-    /// A pool larger than the prize table has nowhere to go, and the hackathon
-    /// closes with the surplus still in the vault.
-    ///
-    /// This is a real gap rather than a design choice, and it is written down
-    /// in the roadmap's deferred table. Every route out of the vault is tied to
-    /// a prize position, so money deposited beyond the table is stranded: the
-    /// sweep only reaches positions the table names, and there is no
-    /// withdrawal function by design. The invariant itself still holds, which
-    /// is why this test asserts the surplus exactly rather than pretending the
-    /// vault empties.
-    #[test]
-    fn a_surplus_beyond_the_prize_table_has_no_route_out_yet() {
-        let settled = Settled::open();
-
-        top_up(&settled, 2_500);
-        settle_everything(&settled);
-        settled.fixture.client.complete();
-
-        assert_eq!(settled.fixture.client.phase(), Phase::Completed);
-        assert_eq!(
-            settled.vault.balance(),
-            2_500,
-            "the surplus stays in the vault; no route reaches it"
-        );
     }
 }
 

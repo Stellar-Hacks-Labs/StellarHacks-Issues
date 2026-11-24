@@ -1,0 +1,67 @@
+{
+  "projected": {
+    "phase": 4,
+    "visibility": 0,
+    "prizeAsset": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "judges": ["GCZYAVTGEEWBFJNBFNPWOYNFPBA4C5O7YFYVZXUHWLKXZCV4LCAJH2QC"],
+    "submissions": {
+      "1": {
+        "uri": "ipfs://projected",
+        "track": "payments",
+        "metadataHash": "\\x01"
+      }
+    },
+    "results": [
+      {
+        "track": "payments",
+        "rank": 1,
+        "team": 1,
+        "finalScore": 688000,
+        "judgeAverage": 860000,
+        "community": 0,
+        "decidedBy": 0
+      }
+    ]
+  },
+  "onChain": {
+    "phase": 5,
+    "visibility": 0,
+    "prizeAsset": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "judges": ["GCZYAVTGEEWBFJNBFNPWOYNFPBA4C5O7YFYVZXUHWLKXZCV4LCAJH2QC"],
+    "submissions": {
+      "1": {
+        "uri": "ipfs://on-chain",
+        "track": "payments",
+        "metadataHash": "\\x01"
+      }
+    },
+    "rankings": {
+      "payments": [
+        {
+          "rank": 1,
+          "team": 1,
+          "finalScore": 688000,
+          "judgeAverage": 860000,
+          "community": 0,
+          "decidedBy": 0
+        }
+      ]
+    }
+  },
+  "expectedMismatches": [
+    {
+      "table": "hackathon_state",
+      "key": "state",
+      "field": "phase",
+      "projected": 4,
+      "onChain": 5
+    },
+    {
+      "table": "submissions",
+      "key": "team:1",
+      "field": "uri",
+      "projected": "ipfs://projected",
+      "onChain": "ipfs://on-chain"
+    }
+  ]
+}

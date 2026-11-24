@@ -1,7 +1,37 @@
-use soroban_sdk::{contracttype, Symbol, Vec};
+use soroban_sdk::{contracttype, Address, Symbol, Vec};
 
 use crate::constitution::scoring::Track;
 use crate::errors::Error;
+
+/// Where undirected deposits beyond the prize table go at closure.
+//
+// The vault takes money from anyone at any phase, and until a route exists that
+// generosity strands whatever sits above the table: every payout is tied to a
+// position, the sweep only reaches positions the table names, and there is no
+// withdrawal function by design. This enum is the declared exit for that leftover.
+//
+// It lives in the constitution for the same reason the platform fee does. A
+// surplus route chosen after somebody has over-funded would let the organizer
+// pick a destination once they already know who paid, which is the opposite of
+// a frozen bargain. So the route is named before the lock or it is never named.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum SurplusRoute {
+    /// Spread the leftover across every prize position, in proportion to what
+    /// each already pays. The top-up lands as a bonus before settlement pays,
+    /// so winners take it with their prize and the vault empties the ordinary
+    /// way.
+    ProRata,
+    /// Send the leftover to this address once every position and the platform
+    /// fee have been settled.
+    ReturnTo(Address),
+    /// Send the leftover into the vault of a named next hackathon instance.
+    //
+    // The address is the next vault, not the next core: the vault reads its
+    // balance from the token, so a direct transfer counts toward the next
+    // event's pool without any further call.
+    RollForward(Address),
+}
 
 /// Whether outside money may join the prize pool after the lock, and how far.
 //
@@ -51,6 +81,8 @@ pub struct SponsorshipPolicy {
     //
     // Read only when [`Self::max_new_tracks`] is positive.
     pub borrows_from: Symbol,
+    /// Where undirected leftover goes once the prize table has been paid.
+    pub surplus: SurplusRoute,
 }
 
 impl SponsorshipPolicy {
@@ -61,12 +93,16 @@ impl SponsorshipPolicy {
     // borrowed track has to be some symbol even when nothing reads it, and a
     // caller inventing one per event is a caller who will eventually invent
     // one that means something.
+    //
+    // Surplus still defaults to pro rata: the vault accepts undirected deposits
+    // whether or not this door is open, and those need a route out too.
     pub fn closed(track: Symbol) -> Self {
         Self {
             top_ups_allowed: false,
             max_new_tracks: 0,
             min_bounty: 0,
             borrows_from: track,
+            surplus: SurplusRoute::ProRata,
         }
     }
 
@@ -107,6 +143,7 @@ mod test {
     use super::*;
     use crate::constitution::scoring::Criterion;
     use crate::constitution::scoring::WEIGHT_TOTAL_BPS;
+    use soroban_sdk::testutils::Address as _;
     use soroban_sdk::{symbol_short, vec, Env};
 
     fn tracks(env: &Env) -> Vec<Track> {
@@ -132,6 +169,7 @@ mod test {
             max_new_tracks: 2,
             min_bounty: 100,
             borrows_from: symbol_short!("main"),
+            surplus: SurplusRoute::ProRata,
         }
     }
 
@@ -142,6 +180,7 @@ mod test {
 
         assert!(!policy.is_open());
         assert_eq!(policy.validate(&tracks(&env)), Ok(()));
+        assert_eq!(policy.surplus, SurplusRoute::ProRata);
     }
 
     /// A closed policy is checked against an empty track list too, because the
@@ -189,6 +228,7 @@ mod test {
             max_new_tracks: 0,
             min_bounty: 100,
             borrows_from: symbol_short!("ghost"),
+            surplus: SurplusRoute::ProRata,
         };
 
         assert_eq!(policy.validate(&tracks(&env)), Ok(()));
@@ -209,5 +249,22 @@ mod test {
             policy.validate(&tracks(&env)),
             Err(Error::ConstitutionInvalid)
         );
+    }
+
+    /// Every surplus route is a declared destination, and naming one keeps the
+    /// policy valid: the contract can walk each of them.
+    #[test]
+    fn every_surplus_route_is_accepted() {
+        let env = Env::default();
+        let dest = Address::generate(&env);
+
+        for surplus in [
+            SurplusRoute::ProRata,
+            SurplusRoute::ReturnTo(dest.clone()),
+            SurplusRoute::RollForward(dest),
+        ] {
+            let policy = SponsorshipPolicy { surplus, ..open() };
+            assert_eq!(policy.validate(&tracks(&env)), Ok(()));
+        }
     }
 }

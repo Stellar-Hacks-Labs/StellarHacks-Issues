@@ -17,6 +17,7 @@ import {
   type Position,
 } from "../../../lib/sponsor";
 import type { Rules } from "../../../lib/rules";
+import { explain, labelOf } from "../../../lib/surplus";
 import { titleOf } from "../../../lib/words";
 
 /**
@@ -117,6 +118,11 @@ export function Sponsor({
           anybody in — but it still reaches whoever wins.
         </p>
       )}
+
+      <p className="text-[0.875rem] leading-relaxed text-ink-faint">
+        Undirected leftover beyond the prize table: {labelOf(rules.sponsorship.surplus)}.{" "}
+        {explain(rules.sponsorship.surplus)}
+      </p>
 
       {contributions.length > 0 && (
         <Wall contributions={contributions} backers={backers} code={code} />

@@ -52,15 +52,37 @@ export {
   type Tally,
 } from "./results.js";
 export { validateSubmission, type SubmissionProblem } from "./submission.js";
+export {
+  labelSurplus,
+  surplusDestination,
+  type SurplusRoute,
+} from "./surplus.js";
 export { toHex, fromHex } from "./hex.js";
 export { spec } from "./spec.js";
 export type { Digest } from "./merkle.js";
+export {
+  BUNDLE_FORMAT,
+  BUNDLE_VERSION,
+  REQUIRED_PATHS,
+  isManifest,
+  readBundle,
+  unzipStore,
+  sha256Hex,
+  checkBundle,
+  checkOpened,
+  runBundleCli,
+  type Manifest,
+  type ManifestFile,
+  type BundleFiles,
+  type CheckResult,
+} from "./bundle/index.js";
 
 export { Client as HackathonCore } from "hackathon-core";
 export { Client as PrizeVault } from "prize-vault";
 /* A value rather than a type, because a phase read off the chain arrives as a
    number and the name is what anybody reading a log or a page wants. */
 export { Phase } from "hackathon-core";
+export { verifyAuditLog, verifyAuditCheckpoint, type AuditEntry, type AuditCheckpoint } from "./audit.js";
 export type {
   Constitution,
   DiscretionPolicy,

@@ -9,7 +9,10 @@ import { cardsOf } from "../../../../lib/project";
 import { decisions, resultsOf, tracksOf } from "../../../../lib/results";
 import { rootsOf } from "../../../../lib/roots";
 import { entriesOf } from "../../../../lib/submissions";
+import { addressOf, explain, labelOf } from "../../../../lib/surplus";
 import { titleOf } from "../../../../lib/words";
+import { BundleDownload } from "./bundle-download";
+import { AuditCheckpoint } from "./audit-checkpoint";
 
 /**
  * The whole receipt, on one page.
@@ -77,6 +80,7 @@ export default async function Proof({ params }: PageProps<"/hackathons/[slug]/pr
         </p>
 
         <div className="mt-10 grid gap-6">
+          <AuditCheckpoint contract={contract} />
           <Section title="The rules">
             <Line
               label="Rules digest"
@@ -119,6 +123,15 @@ export default async function Proof({ params }: PageProps<"/hackathons/[slug]/pr
               value={hackathon.asset ?? hackathon.prize_asset}
               kind="contract"
             />
+            {rules !== null && (
+              <Line
+                label="Surplus route"
+                said={explain(rules.sponsorship.surplus)}
+                value={addressOf(rules.sponsorship.surplus) ?? labelOf(rules.sponsorship.surplus)}
+                kind={addressOf(rules.sponsorship.surplus) !== null ? "account" : undefined}
+                plain={addressOf(rules.sponsorship.surplus) === null}
+              />
+            )}
           </Section>
 
           <Section title="Who is responsible">
@@ -214,6 +227,10 @@ export default async function Proof({ params }: PageProps<"/hackathons/[slug]/pr
                 </div>
               ))
             )}
+          </Section>
+
+          <Section title="Take it with you">
+            <BundleDownload contractId={contract} />
           </Section>
         </div>
       </Measure>

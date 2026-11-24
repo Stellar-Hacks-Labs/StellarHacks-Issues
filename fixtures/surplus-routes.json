@@ -1,0 +1,11 @@
+{
+  "pro_rata": { "tag": "ProRata" },
+  "return_to": {
+    "tag": "ReturnTo",
+    "values": ["GAMX62ZD4FWIKMWGVPEDR6WNL2TYTPQMO2ZJEAZUAON7VCZ5G2GWDF7W"]
+  },
+  "roll_forward": {
+    "tag": "RollForward",
+    "values": ["GAMX62ZD4FWIKMWGVPEDR6WNL2TYTPQMO2ZJEAZUAON7VCZ5G2GWDF7W"]
+  }
+}

@@ -10,6 +10,7 @@ import { CommitButton } from "./commit-button";
 import { Pop, Press } from "./motion";
 import { browserClient } from "../../lib/supabase/client";
 import { shorten, useWallet } from "./wallet-context";
+import { NotificationCentre } from "./notification-centre";
 
 /**
  * The one control on the right of the header, on every page.
@@ -179,7 +180,9 @@ export function AccountMenu({
           onClick={() => setOpen(!open)}
           aria-expanded={open}
           aria-haspopup="menu"
-          aria-label={attached ? `Account, wallet ${wallet.address}` : "Account"}
+          aria-label={
+            attached ? `Account, wallet ${wallet.address}` : "Account"
+          }
           className={`flex h-10 items-center rounded-full transition-colors duration-150 ease-settle ${
             attached
               ? "gap-2 bg-paper-sunk pl-3.5 pr-1 text-ink ring-1 ring-inset ring-rule hover:bg-rule/60"
@@ -189,7 +192,9 @@ export function AccountMenu({
           {attached && (
             <>
               <Icon id={wallet.id} name={wallet.wallet} />
-              <span className="tabular text-[0.9375rem]">{shorten(wallet.address)}</span>
+              <span className="tabular text-[0.9375rem]">
+                {shorten(wallet.address)}
+              </span>
             </>
           )}
 
@@ -197,7 +202,10 @@ export function AccountMenu({
         </motion.button>
       </Press>
 
-      <Pop open={open} className="absolute right-0 top-13 z-20 w-[17rem] origin-top-right">
+      <Pop
+        open={open}
+        className="absolute right-0 top-13 z-20 w-[17rem] origin-top-right"
+      >
         {/*
           A list of places to go, which is what a menu under an avatar is.
 
@@ -237,6 +245,8 @@ export function AccountMenu({
             <span className="flex-1 truncate">Settings</span>
             <Chevron />
           </Link>
+
+          <NotificationCentre />
 
           {/* The rows somebody has and almost nobody else does, kept in their
               own band so the menu still reads as three things for the reader
@@ -299,7 +309,9 @@ export function AccountMenu({
             className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-[1rem] text-ink transition-colors duration-150 ease-settle hover:bg-paper-sunk"
           >
             <WalletIcon />
-            <span className="flex-1 truncate">{attached ? "Switch wallet" : "Connect a wallet"}</span>
+            <span className="flex-1 truncate">
+              {attached ? "Switch wallet" : "Connect a wallet"}
+            </span>
             <Chevron />
           </button>
 
@@ -329,7 +341,9 @@ export function AccountMenu({
               className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-[1rem] text-danger transition-colors duration-150 ease-settle hover:bg-danger/10 disabled:opacity-50"
             >
               <Exit />
-              <span className="flex-1 truncate">{leaving ? "Signing out" : "Sign out"}</span>
+              <span className="flex-1 truncate">
+                {leaving ? "Signing out" : "Sign out"}
+              </span>
             </button>
           </div>
         </div>
@@ -344,9 +358,19 @@ export function AccountMenu({
 
 function Person() {
   return (
-    <svg aria-hidden viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" className="size-[1.125rem] shrink-0">
+    <svg
+      aria-hidden
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      className="size-[1.125rem] shrink-0"
+    >
       <circle cx="10" cy="6.5" r="3.25" />
-      <path d="M3.75 16.25c0-3 2.8-5 6.25-5s6.25 2 6.25 5" strokeLinecap="round" />
+      <path
+        d="M3.75 16.25c0-3 2.8-5 6.25-5s6.25 2 6.25 5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -361,7 +385,15 @@ function Person() {
  */
 function Sliders() {
   return (
-    <svg aria-hidden viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="size-[1.125rem] shrink-0">
+    <svg
+      aria-hidden
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      className="size-[1.125rem] shrink-0"
+    >
       <path d="M3 6h3.25M9.75 6H17M3 14h7.25M13.75 14H17" />
       <circle cx="8" cy="6" r="1.75" />
       <circle cx="12" cy="14" r="1.75" />
@@ -372,7 +404,16 @@ function Sliders() {
 /** A flag on a post: the thing an organizer plants, rather than a thing they own. */
 function Stage() {
   return (
-    <svg aria-hidden viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-[1.125rem] shrink-0">
+    <svg
+      aria-hidden
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="size-[1.125rem] shrink-0"
+    >
       <path d="M5.5 17V3.75" />
       <path d="M5.5 4.25h7.75l-1.5 2.75 1.5 2.75H5.5" />
     </svg>
@@ -382,7 +423,16 @@ function Stage() {
 /** A gavel, for the one role the chain hands out rather than we do. */
 function Gavel() {
   return (
-    <svg aria-hidden viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-[1.125rem] shrink-0">
+    <svg
+      aria-hidden
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="size-[1.125rem] shrink-0"
+    >
       <path d="M4 16.5h7" />
       <path d="M7.5 13.5 13 8" />
       <path d="m10.75 4.5 4.75 4.75" />
@@ -394,7 +444,16 @@ function Gavel() {
 /** A tray with something waiting in it. */
 function Tray() {
   return (
-    <svg aria-hidden viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-[1.125rem] shrink-0">
+    <svg
+      aria-hidden
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="size-[1.125rem] shrink-0"
+    >
       <path d="M3.25 11.75h3.5a3.25 3.25 0 0 0 6.5 0h3.5" />
       <path d="M3.25 11.75 5 4.75h10l1.75 7v2.5a1.5 1.5 0 0 1-1.5 1.5h-10.5a1.5 1.5 0 0 1-1.5-1.5v-2.5Z" />
     </svg>
@@ -403,8 +462,18 @@ function Tray() {
 
 function WalletIcon() {
   return (
-    <svg aria-hidden viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" className="size-[1.125rem] shrink-0">
-      <path d="M3.25 6.5A1.75 1.75 0 0 1 5 4.75h9A1.75 1.75 0 0 1 15.75 6.5v.75" strokeLinecap="round" />
+    <svg
+      aria-hidden
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      className="size-[1.125rem] shrink-0"
+    >
+      <path
+        d="M3.25 6.5A1.75 1.75 0 0 1 5 4.75h9A1.75 1.75 0 0 1 15.75 6.5v.75"
+        strokeLinecap="round"
+      />
       <rect x="3.25" y="6.5" width="13.5" height="8.75" rx="1.75" />
       <circle cx="13.25" cy="10.875" r="1" fill="currentColor" stroke="none" />
     </svg>
@@ -413,7 +482,15 @@ function WalletIcon() {
 
 function Unplug() {
   return (
-    <svg aria-hidden viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="size-[1.125rem] shrink-0">
+    <svg
+      aria-hidden
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      className="size-[1.125rem] shrink-0"
+    >
       <path d="M7.5 3v3.5M12.5 3v3.5" />
       <path d="M5.75 6.5h8.5v3.25a4.25 4.25 0 0 1-8.5 0V6.5Z" />
       <path d="M10 14v3" />
@@ -423,7 +500,16 @@ function Unplug() {
 
 function Exit() {
   return (
-    <svg aria-hidden viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-[1.125rem] shrink-0">
+    <svg
+      aria-hidden
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="size-[1.125rem] shrink-0"
+    >
       <path d="M12 3.75H5.75a1 1 0 0 0-1 1v10.5a1 1 0 0 0 1 1H12" />
       <path d="M13.5 7.25 16.25 10l-2.75 2.75M16 10H8.5" />
     </svg>
@@ -432,7 +518,16 @@ function Exit() {
 
 function Chevron() {
   return (
-    <svg aria-hidden viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="size-4 shrink-0 text-ink-faint">
+    <svg
+      aria-hidden
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="size-4 shrink-0 text-ink-faint"
+    >
       <path d="m8 5 5 5-5 5" />
     </svg>
   );
@@ -447,7 +542,13 @@ function Chevron() {
  * no address to take a letter from, which is a state the header should survive
  * rather than one it should be designed around.
  */
-function Avatar({ email, avatarUrl }: { email: string; avatarUrl: string | null }) {
+function Avatar({
+  email,
+  avatarUrl,
+}: {
+  email: string;
+  avatarUrl: string | null;
+}) {
   const initial = email.trim().charAt(0).toUpperCase();
 
   /* The picture when there is one, and it was not being asked for: the profile
