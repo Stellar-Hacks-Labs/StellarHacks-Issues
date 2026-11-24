@@ -132,6 +132,11 @@ pub enum DataKey {
     /// names. Ranking, settlement and the refund all have to visit each one,
     /// and none of them has a name to start from.
     SponsorTrackIds,
+    /// Undirected leftover beyond the prize table, once it has left along the
+    /// route the constitution named. Its own key rather than a field on the
+    /// state, because it is settled by the same kind of call as a prize and
+    /// answers the same question: has this money already moved.
+    SurplusSettled,
 }
 
 /// Pushes the instance entry's lifetime out. Called on every write, so an
@@ -617,6 +622,16 @@ pub fn is_platform_fee_settled(env: &Env) -> bool {
 
 pub fn mark_platform_fee_settled(env: &Env) {
     let key = DataKey::PlatformFeeSettled;
+    env.storage().persistent().set(&key, &true);
+    touch_entry(env, &key);
+}
+
+pub fn is_surplus_settled(env: &Env) -> bool {
+    env.storage().persistent().has(&DataKey::SurplusSettled)
+}
+
+pub fn mark_surplus_settled(env: &Env) {
+    let key = DataKey::SurplusSettled;
     env.storage().persistent().set(&key, &true);
     touch_entry(env, &key);
 }

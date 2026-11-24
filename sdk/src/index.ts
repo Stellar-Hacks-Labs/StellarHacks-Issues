@@ -52,6 +52,11 @@ export {
   type Tally,
 } from "./results.js";
 export { validateSubmission, type SubmissionProblem } from "./submission.js";
+export {
+  labelSurplus,
+  surplusDestination,
+  type SurplusRoute,
+} from "./surplus.js";
 export { toHex, fromHex } from "./hex.js";
 export { spec } from "./spec.js";
 export type { Digest } from "./merkle.js";

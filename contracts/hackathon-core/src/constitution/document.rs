@@ -17,13 +17,14 @@ use crate::submission::SubmissionRequirements;
 /// The format version of the constitution, so a reader can tell which shape it
 /// is looking at once this structure has changed a few times.
 //
-// Six since the prize table stopped being the whole of the prize. The bump is
-// not decoration: every digest in `fixtures/` moved with it, and a client
-// reading a version five document believes each position pays the amount
-// frozen beside it. That is still where a position starts, but a hackathon
-// that opened its [`Constitution::sponsorship`] door can pay more, and a
-// reader who assumed otherwise would under-report what a winner is owed.
-pub const CONSTITUTION_VERSION: u32 = 6;
+// Seven since undirected deposits beyond the prize table gained a declared
+// route out. The bump is not decoration: every digest in `fixtures/` moved
+// with it, and a client reading a version six document believes surplus has
+// nowhere to go. That was true then; a hackathon that freezes a
+// [`SponsorshipPolicy::surplus`](crate::constitution::SponsorshipPolicy) now
+// empties the vault at closure, and a reader who assumed otherwise would
+// under-report where leftover money went.
+pub const CONSTITUTION_VERSION: u32 = 7;
 
 /// A judge and the tracks they are responsible for.
 #[contracttype]
