@@ -26,9 +26,11 @@ them:
 | `supabase/migrations/` | The schema, as ordered migrations |
 | `supabase/tests/` | What each role can actually reach, checked over HTTP |
 | `supabase/config.toml` | Local and project configuration, secrets by reference only |
+| `shared/` | Doctor helpers shared by the long lived services |
 | `indexer/` | Soroban events into Postgres |
 | `sealer/` | Sealed scorecards and ballots, and the root that commits to them |
 | `clock/` | Sends the call a passed deadline needs, since a contract cannot |
+| `reviewer/` | AI pre-review queue |
 
 ## Working here
 
@@ -48,6 +50,25 @@ cd supabase/tests && npm test    # the role tests, against the linked project
 The role tests need `backend/.env.local`, copied from `backend/.env.example`.
 They create real users in the project and delete them again; everything they
 touch cascades away with the user.
+
+## Configuration doctor
+
+Before starting a service, check that its environment, network passphrase, RPC
+reachability, optional contract addresses, and (where relevant) funded accounts
+are sound. Shared helpers live in `shared/`; each service exposes the same
+script:
+
+```bash
+cd backend/shared && npm test
+cd ../indexer && npm run doctor
+cd ../sealer  && npm run doctor
+cd ../clock   && npm run doctor
+cd ../reviewer && npm run doctor
+```
+
+A non-zero exit names a failure class (`env`, `network`, `rpc`, `contracts`,
+`funding`). Doctors never sign or submit transactions. Operator procedures that
+follow a failed check are in `docs/runbooks/`.
 
 ## Two environment files, on purpose
 

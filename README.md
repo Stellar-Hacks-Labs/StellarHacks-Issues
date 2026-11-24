@@ -868,6 +868,15 @@ Deferred work is recorded rather than omitted.
 | `docs/evidence-bundle-format.md` | On-disk layout and versioning of the evidence zip |
 | `docs/indexer-recovery.md` | Detecting ledger gaps and re-ingesting a bounded range into the durable log |
 | `docs/indexer-consistency.md` | Comparing projections with live contract state after an outage |
+| `docs/runbooks/index.md` | Operator runbooks: first deployment, key rotation, cursor recovery, missed transitions, sealer outage, reviewer backlog, testnet reset, incident template |
+| `docs/runbooks/first-deployment.md` | Standing contracts, schema, funded accounts, and doctors on a new environment |
+| `docs/runbooks/key-rotation.md` | Manual rotation of sealer and clock secrets |
+| `docs/runbooks/indexer-cursor-recovery.md` | Operator path for stranded cursors and open gaps |
+| `docs/runbooks/missed-transition.md` | When a phase deadline passed and the clock did not advance it |
+| `docs/runbooks/sealer-outage.md` | Sealer down while a scoring or voting window is open |
+| `docs/runbooks/reviewer-backlog.md` | Stuck or growing AI pre-review queue |
+| `docs/runbooks/testnet-reset.md` | Recovering after emptied accounts or a wiped test network |
+| `docs/runbooks/incident-template.md` | Fields to fill before closing an incident |
 | Layer documents | `backend/`, `frontend/`, `sdk/` and `fixtures/`, and one per service |
 
 Three codebase conventions are stated here because they explain the structure a
