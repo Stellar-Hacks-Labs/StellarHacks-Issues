@@ -12,6 +12,7 @@ import {
   type Run,
 } from "./db.js";
 import { commitAt, factsOf, repositoryOf, unpack } from "./github.js";
+import { log, metrics, tracker } from "./health.js";
 import { ended, outcomes, submit, type Request } from "./model.js";
 import { inputHash, projectFor, systemFor, type Evidence, type Hackathon, type Project } from "./prompt.js";
 import { readSelected, select, walk } from "./source.js";
@@ -36,7 +37,12 @@ export async function carryOut(run: Run): Promise<void> {
     let count = projects.length - waiting.length;
 
     await started(run, projects.length, settings.model);
-    console.log(`${run.contractId}: ${run.stage} review of ${waiting.length} of ${projects.length} projects`);
+    log.info("review started", {
+      contract: run.contractId,
+      stage: run.stage,
+      waiting: waiting.length,
+      total: projects.length,
+    });
 
     const closedAt = new Date(rules.submissionClosesAt * 1000);
 
@@ -72,11 +78,14 @@ export async function carryOut(run: Run): Promise<void> {
     }
 
     await finished(run);
-    console.log(`${run.contractId}: ${run.stage} review finished`);
+    metrics.increment("reviews_completed");
+    tracker.noteSuccess();
+    log.info("review finished", { contract: run.contractId, stage: run.stage });
   } catch (thrown) {
     const why = thrown instanceof Error ? thrown.message : String(thrown);
 
-    console.error(`${run.contractId}: ${run.stage} review failed: ${why}`);
+    tracker.noteError(thrown);
+    log.error("review failed", { contract: run.contractId, stage: run.stage, error: why });
     await failed(run, why);
   }
 }

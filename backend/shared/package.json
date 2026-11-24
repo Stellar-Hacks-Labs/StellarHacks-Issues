@@ -1,0 +1,22 @@
+{
+  "name": "@stelhacks/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Structured logs, health reports and counters shared by the long lived backend services",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.8"
+  }
+}

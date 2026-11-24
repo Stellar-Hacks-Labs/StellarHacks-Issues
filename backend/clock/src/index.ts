@@ -1,6 +1,9 @@
+import { newCorrelationId, withCorrelationId } from "@stelhacks/shared";
+
 import { advance } from "./advance.js";
 import { settings } from "./config.js";
 import { following } from "./hackathons.js";
+import { log, metrics, tracker } from "./health.js";
 
 /**
  * The clock.
@@ -43,17 +46,28 @@ const only = process.argv.slice(2).find((argument) => !argument.startsWith("--")
 
 async function lap(): Promise<void> {
   const contracts = only === null ? await following() : [only];
+  const started = Date.now();
+  let tickError: unknown = null;
 
   for (const contract of contracts) {
     try {
       for (const done of await advance(contract)) {
         if (done.sent) {
-          console.log(`${contract}: ${done.call}${done.what === undefined ? "" : ` ${done.what}`}`);
+          metrics.increment("transitions_submitted");
+          log.info("transition submitted", {
+            contract,
+            call: done.call,
+            what: done.what,
+          });
         } else if (!done.expected) {
           /* An expected refusal is most laps of most hackathons and saying so
              would bury the one line that matters under a running commentary on
              every window that is still open. */
-          console.error(`${contract}: ${done.call} ${done.because}`);
+          log.error("transition unexpected", {
+            contract,
+            call: done.call,
+            because: done.because,
+          });
         }
       }
     } catch (thrown) {
@@ -64,34 +78,49 @@ async function lap(): Promise<void> {
         expired: each of those stops this hackathon and none of them is a
         reason for the hackathon next in the list to miss its deadline.
       */
-      console.error(`${contract}: ${thrown instanceof Error ? thrown.message : String(thrown)}`);
+      tickError = thrown;
+      log.error("hackathon lap failed", {
+        contract,
+        error: thrown instanceof Error ? thrown.message : String(thrown),
+      });
     }
+  }
+
+  tracker.setLag(Math.max(0, Date.now() - started));
+  if (tickError !== null) {
+    tracker.noteError(tickError);
+  } else {
+    tracker.noteSuccess();
   }
 }
 
 async function keep(): Promise<never> {
   for (;;) {
-    try {
-      await lap();
-    } catch (thrown) {
-      /* Reading the list is the one step with nothing underneath it to carry
-         on with. Reported and retried on the next lap, because a database
-         blinking is not a reason to take the service down for the day. */
-      console.error(`could not read the hackathons: ${thrown}`);
-    }
+    await withCorrelationId(newCorrelationId(), async () => {
+      try {
+        await lap();
+      } catch (thrown) {
+        /* Reading the list is the one step with nothing underneath it to carry
+           on with. Reported and retried on the next lap, because a database
+           blinking is not a reason to take the service down for the day. */
+        tracker.noteError(thrown);
+        log.error("could not read the hackathons", {
+          error: thrown instanceof Error ? thrown.message : String(thrown),
+        });
+      }
+    });
 
     await new Promise((wake) => setTimeout(wake, settings.everyMs));
   }
 }
 
 if (process.argv.includes("--once")) {
-  await lap();
+  await withCorrelationId(newCorrelationId(), () => lap());
 } else {
-  console.log(
-    only === null
-      ? `keeping every hackathon to its own clock, every ${settings.everyMs / 1000}s`
-      : `keeping ${only} to its own clock, every ${settings.everyMs / 1000}s`,
-  );
+  log.info("keeping hackathons to their clocks", {
+    everyMs: settings.everyMs,
+    only,
+  });
 
   await keep();
 }

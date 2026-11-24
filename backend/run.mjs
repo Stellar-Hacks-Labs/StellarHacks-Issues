@@ -10,6 +10,11 @@
  * terminal with a tag per line so a failure says which part failed, and killing
  * this kills them all, because orphaned services are worse than none.
  *
+ * Each service now writes structured JSON lines (see `docs/observability.md`).
+ * The tag prefix here is kept so a mixed terminal still names the process when
+ * several are interleaved; the JSON itself carries `service` and
+ * `correlationId` for anything that scrapes the stream.
+ *
  *   cd backend && npm run dev
  */
 

@@ -9,6 +9,10 @@ import { verify as verifyReceipt, type Receipt } from "./receipt.js";
  * Everything here is deliberately a pure function of the leaves it is given, so
  * that the same set produces the same root every time and anybody holding the
  * leaves can rebuild it without asking.
+ *
+ * Observability stays out of this file on purpose: a pure tree builder has no
+ * tick to succeed or fail, and the accept/reject counters live on the intake
+ * routes that decide whether a leaf reaches this function at all.
  */
 
 /**

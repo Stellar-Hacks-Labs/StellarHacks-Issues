@@ -2,6 +2,7 @@ import { fromHex, toHex, verifySealed } from "@stelhacks/sdk";
 
 import { settings } from "./config.js";
 import { core, sealer } from "./core.js";
+import { log, metrics, serviceHealth, tracker } from "./health.js";
 import { issue } from "./receipt.js";
 import { proofFor, seal } from "./seal.js";
 import { contractOf, isRecord } from "./validate.js";
@@ -61,6 +62,13 @@ function refuse(status: number, says: string): Failure {
   return { status, says };
 }
 
+/** A rejected scorecard still counts: the operator needs both sides of intake. */
+function rejectScorecard(status: number, says: string): Failure {
+  metrics.increment("scorecards_rejected");
+  log.warn("scorecard rejected", { status, reason: says });
+  return refuse(status, says);
+}
+
 function isFailure(result: unknown): result is Failure {
   const failure = result as Failure;
 
@@ -69,7 +77,7 @@ function isFailure(result: unknown): result is Failure {
 
 async function takeScorecard(raw: unknown): Promise<unknown | Failure> {
   if (!isRecord(raw)) {
-    return refuse(400, "that is not a scorecard submission");
+    return rejectScorecard(400, "that is not a scorecard submission");
   }
 
   const contract = contractOf(raw);
@@ -90,21 +98,21 @@ async function takeScorecard(raw: unknown): Promise<unknown | Failure> {
     !/^[0-9a-f]{128}$/.test(signature) ||
     !isSealedInput(raw["sealed"])
   ) {
-    return refuse(400, "a submission needs its public identity, signed leaf and sealed card");
+    return rejectScorecard(400, "a submission needs its public identity, signed leaf and sealed card");
   }
 
   const body = { contract, team: team as number, judge, leafHex, signature, sealed: raw["sealed"] };
   const phase = await phaseOf(body.contract);
 
   if (phase === null) {
-    return refuse(404, "no such hackathon");
+    return rejectScorecard(404, "no such hackathon");
   }
   if (phase !== JUDGING) {
-    return refuse(409, "this hackathon is not collecting scorecards");
+    return rejectScorecard(409, "this hackathon is not collecting scorecards");
   }
 
   if (!(await acceptsSeal(body.contract, body.sealed))) {
-    return refuse(400, "the card is not sealed to this hackathon's judging deadline");
+    return rejectScorecard(400, "the card is not sealed to this hackathon's judging deadline");
   }
 
   const leaf = fromHex(body.leafHex);
@@ -118,7 +126,7 @@ async function takeScorecard(raw: unknown): Promise<unknown | Failure> {
   // Without this check the service could write whatever it liked into the table
   // and the tree would faithfully commit to it.
   if (!verifySealed(signed)) {
-    return refuse(400, "that signature does not cover that scorecard leaf");
+    return rejectScorecard(400, "that signature does not cover that scorecard leaf");
   }
 
   await recordAudit(body.contract, "scorecard", "accepted", { team: body.team, judge: body.judge, leaf: body.leafHex });
@@ -130,6 +138,10 @@ async function takeScorecard(raw: unknown): Promise<unknown | Failure> {
     signature: body.signature,
     sealed: body.sealed,
   });
+
+  metrics.increment("scorecards_accepted");
+  tracker.noteSuccess();
+  log.info("scorecard accepted", { contract: body.contract, team: body.team, judge: body.judge });
 
   return issue(leaf, sealer, Math.floor(Date.now() / 1000));
 }
@@ -310,6 +322,13 @@ export async function route(asked: Asked): Promise<Answer> {
     asked.query.get("kind") === "ballots" ? "ballots" : "scorecards";
 
   try {
+    if (asked.method === "GET" && asked.path === "/health") {
+      return {
+        status: 200,
+        body: { ...serviceHealth(), metrics: metrics.snapshot() },
+      };
+    }
+
     if (asked.method === "GET" && (asked.path === "/audit" || asked.path === "/audit/checkpoints")) {
       return { status: 200, body: await auditRoute(asked.path, asked.query.get("contract") ?? "") };
     }
@@ -346,6 +365,8 @@ export async function route(asked: Asked): Promise<Answer> {
         return { status: 404, body: { error: "not a route" } };
     }
   } catch (thrown) {
+    tracker.noteError(thrown);
+    log.error("route failed", { error: String(thrown), path: asked.path });
     return { status: 500, body: { error: String(thrown) } };
   }
 }

@@ -1,3 +1,4 @@
+import { newCorrelationId, withCorrelationId } from "@stelhacks/shared";
 import { rpc } from "@stellar/stellar-sdk";
 
 import { parseArgs, usage } from "./commands.js";
@@ -7,7 +8,7 @@ import { explain, fellOffTheWindow } from "./errors.js";
 import { advanceTo, noteProgress, resumeFrom, rewind } from "./cursor.js";
 import { decode } from "./decode.js";
 import { detectGaps, recordGaps } from "./gaps.js";
-import { health } from "./health.js";
+import { health, log, metrics, tracker } from "./health.js";
 import { read, replayable, store } from "./ingest.js";
 import { project } from "./project.js";
 import { merge, type LedgerRange } from "./ranges.js";
@@ -97,23 +98,27 @@ const projected = new Set<string>();
 const NEAR_THE_HEAD = 12;
 
 async function reproject(contract: string): Promise<void> {
-  const log = await replayable(contract);
-  const events = decode(log.events);
-  await apply(project(events, log.reads));
+  const stored = await replayable(contract);
+  const events = decode(stored.events);
+  await apply(project(events, stored.reads));
   await deliverLifecycleNotifications(events);
   projected.add(contract);
 }
 
 async function rebuild(contract: string): Promise<void> {
-  console.log(`rebuilding ${contract} from the log`);
+  log.info("rebuilding from the log", { contract });
 
   await discard(contract);
   await rewind(contract);
 
-  const log = await replayable(contract);
-  await apply(project(decode(log.events), log.reads));
+  const stored = await replayable(contract);
+  await apply(project(decode(stored.events), stored.reads));
 
-  console.log(`rebuilt from ${log.events.length} events and ${log.reads.length} reads`);
+  log.info("rebuilt from the log", {
+    contract,
+    events: stored.events.length,
+    reads: stored.reads.length,
+  });
 }
 
 /**
@@ -191,7 +196,11 @@ async function detectAndRecordGaps(contract: string): Promise<void> {
   });
 
   const written = await recordGaps(contract, gaps);
-  console.log(`${contract}: ${formatGaps(gaps)} (recorded ${written})`);
+  log.info("gap detection finished", {
+    contract,
+    summary: formatGaps(gaps),
+    recorded: written,
+  });
 }
 
 /**
@@ -215,7 +224,7 @@ async function watching(): Promise<string[]> {
   const { data, error } = await db.from("hackathons").select("contract_id");
 
   if (error !== null) {
-    console.error(`could not read the hackathons to follow: ${error.message}`);
+    log.error("could not read the hackathons to follow", { error: error.message });
 
     /* The list we already had, rather than none. A failed read is a reason to
        carry on following what was already being followed; returning nothing
@@ -231,75 +240,98 @@ async function watching(): Promise<string[]> {
 
 async function follow(only: string | undefined): Promise<never> {
   for (;;) {
-    const contracts = only === undefined ? await watching() : [only];
-    let catchingUp = false;
+    await withCorrelationId(newCorrelationId(), async () => {
+      const contracts = only === undefined ? await watching() : [only];
+      let catchingUp = false;
+      let tickError: unknown = null;
+      let worstLag = 0;
 
-    for (const contract of contracts) {
-      try {
-        const found = await pass(contract);
-        const behind = await health(contract);
+      for (const contract of contracts) {
+        try {
+          const found = await pass(contract);
+          const behind = await health(contract);
 
-        if (found > 0) {
-          projected.delete(contract);
+          if (found > 0) {
+            metrics.increment("events_ingested", found);
+            projected.delete(contract);
+          }
+
+          worstLag = Math.max(worstLag, behind.lag);
+          tracker.setLag(worstLag);
+
+          if (behind.lag > NEAR_THE_HEAD) {
+            catchingUp = true;
+          } else if (!projected.has(contract)) {
+            await reproject(contract);
+          }
+
+          if (behind.strandedBehindRetention) {
+            // Saying this every pass is deliberate. It is the one condition
+            // running longer does not fix, and an indexer that quietly kept up
+            // from a point past the gap would look healthy while missing
+            // everything before it.
+            log.error("stranded behind RPC retention", {
+              contract,
+              cursor: behind.cursor,
+            });
+          }
+
+          if (behind.openGapCount > 0 || behind.consistency.ok === false) {
+            log.error("recovery signals still open", {
+              contract,
+              openGaps: behind.openGapCount,
+              consistency:
+                behind.consistency.ok === null
+                  ? "unchecked"
+                  : behind.consistency.ok
+                    ? "ok"
+                    : "mismatch",
+            });
+          }
+
+          if (found > 0 || behind.lag > 0) {
+            log.info("ingest pass", {
+              contract,
+              ingested: found,
+              lag: behind.lag,
+              latest: behind.latest,
+            });
+          }
+        } catch (thrown) {
+          /*
+            One contract's failure is not the others'.
+
+            A hackathon whose events RPC has aged out would otherwise stop the
+            loop and with it every event still arriving for every other
+            hackathon. It is reported and skipped, and the next lap tries it
+            again.
+          */
+          tickError = thrown;
+          const message = fellOffTheWindow(thrown)
+            ? "stranded, its events are older than anything RPC still serves"
+            : explain(thrown);
+          log.error("ingest pass failed", { contract, error: message });
         }
-
-        if (behind.lag > NEAR_THE_HEAD) {
-          catchingUp = true;
-        } else if (!projected.has(contract)) {
-          await reproject(contract);
-        }
-
-        if (behind.strandedBehindRetention) {
-          // Saying this every pass is deliberate. It is the one condition
-          // running longer does not fix, and an indexer that quietly kept up
-          // from a point past the gap would look healthy while missing
-          // everything before it.
-          console.error(
-            `${contract}: stranded at ${behind.cursor}, older than anything RPC still serves`,
-          );
-        }
-
-        if (behind.openGapCount > 0 || behind.consistency.ok === false) {
-          console.error(
-            `${contract}: ${behind.openGapCount} open gap(s), consistency=${
-              behind.consistency.ok === null ? "unchecked" : behind.consistency.ok ? "ok" : "mismatch"
-            }`,
-          );
-        }
-
-        if (found > 0 || behind.lag > 0) {
-          console.log(`${contract}: ingested ${found}, ${behind.lag} behind ${behind.latest}`);
-        }
-      } catch (thrown) {
-        /*
-          One contract's failure is not the others'.
-
-          A hackathon whose events RPC has aged out would otherwise stop the
-          loop and with it every event still arriving for every other
-          hackathon. It is reported and skipped, and the next lap tries it
-          again.
-        */
-        console.error(
-          `${contract}: ${
-            fellOffTheWindow(thrown)
-              ? "stranded, its events are older than anything RPC still serves"
-              : explain(thrown)
-          }`,
-        );
       }
-    }
 
-    if (contracts.length === 0) {
-      console.log("no hackathons to follow yet");
-    }
+      if (tickError !== null) {
+        tracker.noteError(tickError);
+      } else {
+        tracker.noteSuccess();
+      }
 
-    /* Straight on while anything is behind, so a backlog clears at the speed
-       RPC serves it. At the head, a lap a minute whether or not the last one
-       found events: that is what keeps the rebuild above to once a minute for
-       a busy hackathon instead of once per event. */
-    if (!catchingUp) {
-      await new Promise((wake) => setTimeout(wake, settings.idleMs));
-    }
+      if (contracts.length === 0) {
+        log.info("no hackathons to follow yet");
+      }
+
+      /* Straight on while anything is behind, so a backlog clears at the speed
+         RPC serves it. At the head, a lap a minute whether or not the last one
+         found events: that is what keeps the rebuild above to once a minute for
+         a busy hackathon instead of once per event. */
+      if (!catchingUp) {
+        await new Promise((wake) => setTimeout(wake, settings.idleMs));
+      }
+    });
   }
 }
 
@@ -308,7 +340,7 @@ let command;
 try {
   command = parseArgs(process.argv.slice(2));
 } catch (thrown) {
-  console.error(explain(thrown));
+  log.error(explain(thrown));
   process.exit(1);
 }
 
@@ -318,10 +350,20 @@ switch (command.kind) {
     break;
   case "once": {
     const found = await pass(command.contract);
+    if (found > 0) {
+      metrics.increment("events_ingested", found);
+    }
     await reproject(command.contract);
     const behind = await health(command.contract);
+    tracker.setLag(behind.lag);
+    tracker.noteSuccess();
 
-    console.log(`ingested ${found} events, ${behind.lag} ledgers behind ${behind.latest}`);
+    log.info("one-shot ingest finished", {
+      contract: command.contract,
+      ingested: found,
+      lag: behind.lag,
+      latest: behind.latest,
+    });
     break;
   }
   case "detect-gaps":
@@ -330,16 +372,24 @@ switch (command.kind) {
   case "reingest": {
     const result = await reingest(command.contract, command.from, command.to);
     await reproject(command.contract);
-    console.log(
-      `re-ingested ${result.range.from}-${result.range.to}: ${result.events} events, ` +
-        `${result.reads} reads, ${result.pages} page(s), resolved ${result.resolvedGaps} gap(s)` +
-        (result.clamped ? " (clamped to RPC retention)" : ""),
-    );
+    if (result.events > 0) {
+      metrics.increment("events_ingested", result.events);
+    }
+    log.info("re-ingest finished", {
+      contract: command.contract,
+      from: result.range.from,
+      to: result.range.to,
+      events: result.events,
+      reads: result.reads,
+      pages: result.pages,
+      resolvedGaps: result.resolvedGaps,
+      clamped: result.clamped,
+    });
     break;
   }
   case "check": {
     const run = await runConsistencyCheck(command.contract);
-    console.log(describeCheck(run));
+    log.info(describeCheck(run));
     if (!run.report.ok) {
       process.exitCode = 2;
     }
@@ -349,7 +399,7 @@ switch (command.kind) {
     await follow(command.contract);
     break;
   default: {
-    console.error(usage());
+    log.error(usage());
     process.exit(1);
   }
 }

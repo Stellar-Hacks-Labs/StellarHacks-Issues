@@ -10,6 +10,9 @@
  * and while they each read it their own way, one of them saw the object's words
  * and the other saw nothing, so the retry never ran and the contract never
  * moved. They read it here now, once.
+ *
+ * Structured logs and the uniform health tracker take this string as `error`
+ * rather than inventing a second formatter: one description, one place.
  */
 export function explain(thrown: unknown): string {
   if (thrown instanceof Error) {

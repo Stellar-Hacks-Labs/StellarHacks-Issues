@@ -868,6 +868,9 @@ Deferred work is recorded rather than omitted.
 | `docs/evidence-bundle-format.md` | On-disk layout and versioning of the evidence zip |
 | `docs/indexer-recovery.md` | Detecting ledger gaps and re-ingesting a bounded range into the durable log |
 | `docs/indexer-consistency.md` | Comparing projections with live contract state after an outage |
+| `docs/observability.md` | Shared structured logs, health shape and how to read them across services |
+| `docs/metrics.md` | What each operator counter means |
+| `docs/observability-fields.md` | Log line fields, levels and redaction |
 | Layer documents | `backend/`, `frontend/`, `sdk/` and `fixtures/`, and one per service |
 
 Three codebase conventions are stated here because they explain the structure a
