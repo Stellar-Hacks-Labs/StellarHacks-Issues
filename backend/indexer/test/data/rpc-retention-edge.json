@@ -1,0 +1,9 @@
+{
+  "covered": [{ "from": 5000, "to": 5100 }],
+  "cursor": 4800,
+  "oldestRpc": 5000,
+  "origin": 5000,
+  "expectedGaps": [
+    { "from": 4801, "to": 4999, "reason": "behind_retention" }
+  ]
+}

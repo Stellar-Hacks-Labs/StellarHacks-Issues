@@ -1,11 +1,19 @@
+import { rpc } from "@stellar/stellar-sdk";
+
+import { parseArgs, usage } from "./commands.js";
 import { settings } from "./config.js";
-import { db } from "./supabase.js";
+import { describeCheck, runConsistencyCheck } from "./consistency.js";
 import { explain, fellOffTheWindow } from "./errors.js";
 import { advanceTo, noteProgress, resumeFrom, rewind } from "./cursor.js";
 import { decode } from "./decode.js";
+import { detectGaps, recordGaps } from "./gaps.js";
 import { health } from "./health.js";
 import { read, replayable, store } from "./ingest.js";
 import { project } from "./project.js";
+import { merge, type LedgerRange } from "./ranges.js";
+import { formatGaps } from "./report.js";
+import { reingest } from "./reingest.js";
+import { db } from "./supabase.js";
 import { apply, discard } from "./write.js";
 
 /**
@@ -22,6 +30,9 @@ import { apply, discard } from "./write.js";
  *   indexer <contract id>            follow one, forever
  *   indexer <contract id> --once     one pass, then stop
  *   indexer <contract id> --rebuild  throw the projections away and rebuild
+ *   indexer <contract id> --detect-gaps
+ *   indexer <contract id> --reingest <from> <to>
+ *   indexer <contract id> --check
  *
  * Called with nothing, the list is the `hackathons` table rather than a setting.
  * It was one contract named in the environment, which is fine while there is
@@ -31,6 +42,8 @@ import { apply, discard } from "./write.js";
  * a hackathon created in the browser is followed without anybody editing a file
  * and restarting anything.
  */
+
+const server = new rpc.Server(settings.rpcUrl);
 
 async function pass(contract: string): Promise<number> {
   const from = await resumeFrom(contract);
@@ -101,6 +114,84 @@ async function rebuild(contract: string): Promise<void> {
 }
 
 /**
+ * Covered ranges inferred from stored events.
+ *
+ * Contiguous event ledgers collapse into one range. A missing ledger between
+ * two events is not itself a gap — events are sparse — so this cover is only a
+ * lower bound on what was scanned. Combined with the cursor it is still enough
+ * to spot a cursor that jumped past a stretch nobody asked RPC about.
+ */
+async function coveredFromEvents(contract: string): Promise<LedgerRange[]> {
+  const { data, error } = await db
+    .from("chain_events")
+    .select("ledger")
+    .eq("contract_id", contract)
+    .order("ledger", { ascending: true });
+
+  if (error !== null) {
+    throw new Error(`could not read event ledgers: ${error.message}`);
+  }
+
+  const ledgers = [...new Set((data ?? []).map((row) => Number(row.ledger)))].sort((a, b) => a - b);
+
+  if (ledgers.length === 0) {
+    return [];
+  }
+
+  const ranges: LedgerRange[] = [];
+  let from = ledgers[0]!;
+  let to = from;
+
+  for (let index = 1; index < ledgers.length; index += 1) {
+    const ledger = ledgers[index]!;
+
+    if (ledger === to + 1) {
+      to = ledger;
+      continue;
+    }
+
+    ranges.push({ from, to });
+    from = ledger;
+    to = ledger;
+  }
+
+  ranges.push({ from, to });
+
+  return merge(ranges);
+}
+
+async function detectAndRecordGaps(contract: string): Promise<void> {
+  const [cursor, node, covered] = await Promise.all([
+    resumeFrom(contract),
+    server.getHealth(),
+    coveredFromEvents(contract),
+  ]);
+
+  /*
+    A healthy cursor claims a continuous scan from the first stored event to
+    itself. Sparse events must not look like holes, so that claim is one range.
+    When the cursor has fallen behind retention the continuous claim is a lie —
+    fall back to the event clumps we still hold and let detectGaps name both
+    the irreparable stretch and any hole inside the clumps.
+  */
+  const origin = covered[0]?.from;
+  const scanCover =
+    origin !== undefined && cursor >= node.oldestLedger
+      ? [{ from: origin, to: Math.max(origin, cursor) }]
+      : covered;
+
+  const gaps = detectGaps({
+    covered: scanCover,
+    cursor,
+    oldestRpc: node.oldestLedger,
+    origin,
+  });
+
+  const written = await recordGaps(contract, gaps);
+  console.log(`${contract}: ${formatGaps(gaps)} (recorded ${written})`);
+}
+
+/**
  * Every hackathon the product knows about, re-read now and then.
  *
  * Read from the table rather than taken once at startup, so a hackathon
@@ -165,6 +256,14 @@ async function follow(only: string | undefined): Promise<never> {
           );
         }
 
+        if (behind.openGapCount > 0 || behind.consistency.ok === false) {
+          console.error(
+            `${contract}: ${behind.openGapCount} open gap(s), consistency=${
+              behind.consistency.ok === null ? "unchecked" : behind.consistency.ok ? "ok" : "mismatch"
+            }`,
+          );
+        }
+
         if (found > 0 || behind.lag > 0) {
           console.log(`${contract}: ingested ${found}, ${behind.lag} behind ${behind.latest}`);
         }
@@ -201,26 +300,53 @@ async function follow(only: string | undefined): Promise<never> {
   }
 }
 
-const [contract, mode] = process.argv.slice(2);
+let command;
 
-/* The two maintenance modes still take one contract, because both are things
-   somebody does to a particular hackathon after looking at it. Following is the
-   one that wants the whole list. */
-if (mode === "--rebuild" || mode === "--once") {
-  if (contract === undefined) {
-    console.error("usage: indexer <contract id> [--once|--rebuild]");
-    process.exit(1);
-  }
+try {
+  command = parseArgs(process.argv.slice(2));
+} catch (thrown) {
+  console.error(explain(thrown));
+  process.exit(1);
+}
 
-  if (mode === "--rebuild") {
-    await rebuild(contract);
-  } else {
-    const found = await pass(contract);
-    await reproject(contract);
-    const behind = await health(contract);
+switch (command.kind) {
+  case "rebuild":
+    await rebuild(command.contract);
+    break;
+  case "once": {
+    const found = await pass(command.contract);
+    await reproject(command.contract);
+    const behind = await health(command.contract);
 
     console.log(`ingested ${found} events, ${behind.lag} ledgers behind ${behind.latest}`);
+    break;
   }
-} else {
-  await follow(contract);
+  case "detect-gaps":
+    await detectAndRecordGaps(command.contract);
+    break;
+  case "reingest": {
+    const result = await reingest(command.contract, command.from, command.to);
+    await reproject(command.contract);
+    console.log(
+      `re-ingested ${result.range.from}-${result.range.to}: ${result.events} events, ` +
+        `${result.reads} reads, ${result.pages} page(s), resolved ${result.resolvedGaps} gap(s)` +
+        (result.clamped ? " (clamped to RPC retention)" : ""),
+    );
+    break;
+  }
+  case "check": {
+    const run = await runConsistencyCheck(command.contract);
+    console.log(describeCheck(run));
+    if (!run.report.ok) {
+      process.exitCode = 2;
+    }
+    break;
+  }
+  case "follow":
+    await follow(command.contract);
+    break;
+  default: {
+    console.error(usage());
+    process.exit(1);
+  }
 }
