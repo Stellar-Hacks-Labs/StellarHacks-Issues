@@ -6,12 +6,14 @@
   "description": "Presses the button a deadline should never have needed a person for",
   "scripts": {
     "start": "tsx src/index.ts",
+    "doctor": "tsx src/doctor.ts",
     "check": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
     "@stellar/stellar-sdk": "^14.5.0",
     "@stelhacks/sdk": "file:../../sdk",
+    "@stelhacks/shared": "file:../shared",
     "@supabase/supabase-js": "^2.47.0",
     "dotenv": "^16.4.7"
   },

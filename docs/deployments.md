@@ -2,7 +2,9 @@
 
 The code this project has on chain, with the digest behind it. Nothing here is a
 secret; the point of the file is that anyone can check the code running on chain
-is the code in this repository.
+is the code in this repository. The configuration doctor parses the contract
+addresses listed below so a service pointed at an unpublished id fails before it
+starts (`backend/shared` → `docs/runbooks/index.md`).
 
 ## How to verify
 
