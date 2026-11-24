@@ -29,6 +29,7 @@ the two suites red, and the file is what says which side moved.
 | `merkle-root.sha256` | The two leaves above, combined into one node |
 | `event-project-submitted.hex` | One real `ProjectSubmitted` event, whole, as the chain emitted it |
 | `ranking.txt` | A finished ranking, with everything it was derived from |
+| `ranking-fallback.txt` | The same shape under `RankAvailable(2)`, with one project marked under the fallback |
 | `surplus-routes.json` | The three surplus route shapes both languages label |
 
 Digests and encodings are hex, one value per file and nothing else, so a value

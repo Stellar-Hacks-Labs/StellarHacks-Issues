@@ -93,6 +93,7 @@ function log(): { events: ProjectedEvent[]; reads: StoredRead[] } {
             judge_average: 860000,
             community: 0,
             decided_by: 0,
+            under_fallback: false,
           },
         ],
       },

@@ -851,7 +851,7 @@ Deferred work is recorded rather than omitted.
 | Strict judging mode, in which judges commit and disclose on chain directly | Modelled, validated and hashed; no entry point implemented. The sealed mode is the default, and the strict mode is required only where the availability assumption of the collection service is unacceptable |
 | `RefundRoute::Depositors` as a declared route | Refused by validation rather than promised as a route the contract cannot walk. Cancellation is unaffected: recorded sponsor contributions are repaid in full from the sponsorship ledger. What is missing is proportional attribution for undirected deposits |
 | A pool exceeding the prize table | Resolved by decision 26: `SponsorshipPolicy.surplus` freezes a pro rata, return-to, or roll-forward route before the lock, and settlement empties the vault along it. Directed contributions remain unaffected |
-| Missing judge fallback | Quorum is enforced by excluding projects below quorum from the ranking; the fallback policy is unwritten |
+| Missing judge fallback | Resolved by decision 27: the constitution freezes Exclude, RankAvailable, or Reassign; ranking enforces it and marks placements under the fallback |
 
 ## Documentation index
 
@@ -860,7 +860,7 @@ Deferred work is recorded rather than omitted.
 | `README.md` | This document: system description and operating procedures |
 | `CLAUDE.md` | Working conventions, commands and architecture, loaded automatically by agent tooling |
 | `StelHacks-PRD.md` | Product requirements document, in Turkish |
-| `docs/decisions.md` | Twenty five entries recording each departure from the requirements document with its rationale. Where the two conflict, this document governs |
+| `docs/decisions.md` | Decision log recording each departure from the requirements document with its rationale. Where the two conflict, this document governs |
 | `docs/deployments.md` | Addresses, wasm hashes, the reference instance, and defects identified on the live network |
 | `docs/verifier.md` | Independent verifier CLI: usage, what it reads, exit codes |
 | `docs/verifier-checks.md` | What each named verifier check proves when it passes or fails |

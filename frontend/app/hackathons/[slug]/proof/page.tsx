@@ -9,6 +9,10 @@ import { cardsOf } from "../../../../lib/project";
 import { decisions, resultsOf, tracksOf } from "../../../../lib/results";
 import { rootsOf } from "../../../../lib/roots";
 import { entriesOf } from "../../../../lib/submissions";
+import {
+  explain as explainFallback,
+  labelOf as labelFallback,
+} from "../../../../lib/fallback";
 import { addressOf, explain, labelOf } from "../../../../lib/surplus";
 import { titleOf } from "../../../../lib/words";
 import { BundleDownload } from "./bundle-download";
@@ -105,6 +109,12 @@ export default async function Proof({ params }: PageProps<"/hackathons/[slug]/pr
                 )}
                 <Line label="Judges" value={String(rules.judges)} plain />
                 <Line label="Scorecards a project needs" value={String(rules.judgeQuorum)} plain />
+                <Line
+                  label="Missing-judge fallback"
+                  said={explainFallback(rules.missingJudgeFallback)}
+                  value={labelFallback(rules.missingJudgeFallback)}
+                  plain
+                />
               </>
             )}
           </Section>
@@ -219,6 +229,7 @@ export default async function Proof({ params }: PageProps<"/hackathons/[slug]/pr
 
                         <span className="text-[0.875rem] text-ink-soft">
                           decided {decisions[place.decidedBy] ?? "on score"}
+                          {place.underFallback && " · ranked under fallback"}
                           {place.paid && " · prize paid"}
                         </span>
                       </li>

@@ -72,6 +72,9 @@ pub struct Placement {
     /// How this project was separated from the one placed directly above it.
     /// The winner has nothing above them, so theirs reads as the score.
     pub decided_by: DecidedBy,
+    /// True when this project was ranked under the missing-judge fallback
+    /// rather than by meeting the announced quorum.
+    pub under_fallback: bool,
 }
 
 /// Which step of the tie break chain decided a placing.
@@ -113,6 +116,8 @@ pub struct Candidate {
     pub submitted_at: u64,
     /// Means for the criteria the tie break chain names, and no others.
     pub criterion_averages: Vec<CriterionScore>,
+    /// Carried through the sort so the placement can mark a thinner bench.
+    pub under_fallback: bool,
 }
 
 impl Candidate {
@@ -280,6 +285,7 @@ mod test {
             community: 0,
             submitted_at: 1_000,
             criterion_averages: vec![env],
+            under_fallback: false,
         }
     }
 

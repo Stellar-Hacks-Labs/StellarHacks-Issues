@@ -18,6 +18,10 @@ pub const MAX_WEIGHTED_SCORE: u32 = MAX_CRITERION_SCORE * WEIGHT_TOTAL_BPS;
 // pair means computing it never requires loading every scorecard a project
 // received. The sum is widened to sixty four bits so a project with hundreds
 // of judges cannot overflow it.
+//
+// The count is also what the missing-judge fallback reads: whether a project
+// enters the ranking is decided by comparing it to the floor the constitution
+// froze, not by re-reading every card.
 #[contracttype]
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct ScoreTally {

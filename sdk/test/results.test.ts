@@ -60,6 +60,7 @@ function ranking(): { topVotes: number; projects: ProjectData[]; expected: Row[]
         judgeAverage: Number(fields["judge_average"]),
         community: Number(fields["community"]),
         decidedBy: Number(fields["decided_by"]),
+        underFallback: fields["under_fallback"] === "1",
       });
     }
   }
@@ -74,6 +75,7 @@ interface Row {
   judgeAverage: number;
   community: number;
   decidedBy: number;
+  underFallback: boolean;
 }
 
 describe("recomputing a finished ranking", () => {
@@ -109,6 +111,7 @@ describe("recomputing a finished ranking", () => {
 
     placements.forEach((placement, index) => {
       expect(placement.decided_by).toBe(expected[index]!.decidedBy);
+      expect(placement.under_fallback).toBe(expected[index]!.underFallback);
     });
   });
 });
@@ -217,6 +220,7 @@ describe("the tie break chain", () => {
     community: 0,
     submittedAt: 100n,
     criterionAverages: new Map(),
+    underFallback: false,
     ...overrides,
   });
 

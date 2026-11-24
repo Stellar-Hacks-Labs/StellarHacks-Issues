@@ -11,9 +11,9 @@ use soroban_sdk::{symbol_short, vec, Address, BytesN, Env, String, Symbol, Vec};
 use crate::ballot::VoteChoice;
 use crate::constitution::{
     Constitution, Criterion, DiscretionPolicy, ExtensionPolicy, JudgeAssignment, JudgingMode,
-    PlatformFee, PrizeTier, ProjectVisibility, RefundRoute, RegistrationPolicy, Schedule,
-    SettlementMode, SponsorshipPolicy, SurplusRoute, TeamPolicy, TieBreakRule, Track, VotePolicy,
-    CONSTITUTION_VERSION, DEFAULT_MAX_CHOICES, DEFAULT_VOTE_POWER,
+    MissingJudgeFallback, PlatformFee, PrizeTier, ProjectVisibility, RefundRoute,
+    RegistrationPolicy, Schedule, SettlementMode, SponsorshipPolicy, SurplusRoute, TeamPolicy,
+    TieBreakRule, Track, VotePolicy, CONSTITUTION_VERSION, DEFAULT_MAX_CHOICES, DEFAULT_VOTE_POWER,
 };
 use crate::scorecard::{CriterionScore, Scorecard};
 use crate::submission::{SubmissionMetadata, SubmissionRequirements};
@@ -106,6 +106,7 @@ pub fn sample_constitution_paying(env: &Env, prize_asset: Address) -> Constituti
         ],
         judges,
         judge_quorum: 3,
+        missing_judge_fallback: MissingJudgeFallback::Exclude,
         judging_mode: JudgingMode::Easy(Address::generate(env)),
         vote: VotePolicy {
             judge_bps: 8_000,
@@ -204,6 +205,7 @@ pub fn canonical_constitution(env: &Env) -> Constitution {
         ],
         judges,
         judge_quorum: 3,
+        missing_judge_fallback: MissingJudgeFallback::Exclude,
         judging_mode: JudgingMode::Easy(Address::from_str(env, CANONICAL_SEALER)),
         vote: VotePolicy {
             judge_bps: 8_000,

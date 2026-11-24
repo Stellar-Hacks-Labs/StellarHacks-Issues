@@ -57,6 +57,13 @@ export {
   surplusDestination,
   type SurplusRoute,
 } from "./surplus.js";
+export {
+  admitsToRanking,
+  labelFallback,
+  rankedUnderFallback,
+  scoresRequired,
+  type MissingJudgeFallback,
+} from "./fallback.js";
 export { toHex, fromHex } from "./hex.js";
 export { spec } from "./spec.js";
 export type { Digest } from "./merkle.js";

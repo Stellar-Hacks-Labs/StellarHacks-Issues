@@ -588,6 +588,7 @@ export function Wizard({
         return named.length > 0 ? named : [{ address: wallet.address, tracks: [] }];
       })(),
       judgeQuorum: 1,
+      missingJudgeFallback: { kind: "exclude" },
       communityBps,
       visibility,
       schedule: {

@@ -121,6 +121,7 @@ export interface Draft {
   tracks: Track[];
   judges: Judge[];
   judgeQuorum: number;
+  missingJudgeFallback: DraftFallback;
   /**
    * Who may read the project write-ups stored by StelHacks.
    *
@@ -243,6 +244,11 @@ export type DraftSurplus =
   | { kind: "pro-rata" }
   | { kind: "return-to"; address: string }
   | { kind: "roll-forward"; address: string };
+
+export type DraftFallback =
+  | { kind: "exclude" }
+  | { kind: "rank-available"; floor: number }
+  | { kind: "reassign"; allowance: number };
 
 /**
  * What the form opens on: open to money, closed to new categories.
@@ -368,6 +374,7 @@ export async function createArgs(organizer: string, draft: Draft) {
     })),
 
     judge_quorum: draft.judgeQuorum,
+    missing_judge_fallback: encodeFallback(draft.missingJudgeFallback),
 
     /*
       Easy mode, which is the one that is built. It names the address allowed
@@ -576,5 +583,17 @@ function encodeSurplus(surplus: DraftSurplus): unknown {
       return { tag: "ReturnTo", values: [surplus.address] };
     case "roll-forward":
       return { tag: "RollForward", values: [surplus.address] };
+  }
+}
+
+/** The missing-judge fallback as the contract's tagged union expects it. */
+function encodeFallback(fallback: DraftFallback): unknown {
+  switch (fallback.kind) {
+    case "exclude":
+      return { tag: "Exclude", values: undefined };
+    case "rank-available":
+      return { tag: "RankAvailable", values: [fallback.floor] };
+    case "reassign":
+      return { tag: "Reassign", values: [fallback.allowance] };
   }
 }

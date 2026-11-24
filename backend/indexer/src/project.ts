@@ -208,6 +208,7 @@ export function project(events: readonly ProjectedEvent[], reads: readonly Store
               judge_average: Number(placement["judge_average"]),
               community: Number(placement["community"]),
               decided_by: Number(placement["decided_by"]),
+              under_fallback: placement["under_fallback"] === true,
             });
           }
         }

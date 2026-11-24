@@ -1,7 +1,27 @@
 use soroban_sdk::{contracttype, Symbol, Vec};
 
+use crate::constitution::judging::MissingJudgeFallback;
 use crate::constitution::scoring::Track;
 use crate::errors::Error;
+
+/// Whether a project's revealed scorecards are enough to enter the ranking.
+pub fn admits_to_ranking(
+    score_count: u32,
+    judge_quorum: u32,
+    fallback: &MissingJudgeFallback,
+    quorum_binds: bool,
+) -> bool {
+    if !quorum_binds {
+        return true;
+    }
+
+    score_count >= fallback.scores_required(judge_quorum)
+}
+
+/// Whether a ranked project used the fallback rather than meeting the quorum.
+pub fn ranked_under_fallback(score_count: u32, judge_quorum: u32, quorum_binds: bool) -> bool {
+    quorum_binds && score_count < judge_quorum
+}
 
 /// One step in the chain that separates two projects on the same score.
 #[contracttype]
@@ -226,5 +246,40 @@ mod test {
             validate_tie_break(&rules, &tracks(&env), false),
             Err(Error::ConstitutionInvalid)
         );
+    }
+
+    #[test]
+    fn exclude_leaves_a_short_bench_out() {
+        assert!(!admits_to_ranking(2, 3, &MissingJudgeFallback::Exclude, true));
+        assert!(admits_to_ranking(3, 3, &MissingJudgeFallback::Exclude, true));
+    }
+
+    #[test]
+    fn a_floor_admits_a_project_above_it() {
+        let policy = MissingJudgeFallback::RankAvailable(2);
+
+        assert!(admits_to_ranking(2, 3, &policy, true));
+        assert!(!admits_to_ranking(1, 3, &policy, true));
+        assert!(ranked_under_fallback(2, 3, true));
+        assert!(!ranked_under_fallback(3, 3, true));
+    }
+
+    #[test]
+    fn an_allowance_admits_a_shortfall_inside_it() {
+        let policy = MissingJudgeFallback::Reassign(1);
+
+        assert!(admits_to_ranking(2, 3, &policy, true));
+        assert!(!admits_to_ranking(1, 3, &policy, true));
+    }
+
+    #[test]
+    fn a_quorum_that_does_not_bind_admits_everyone() {
+        assert!(admits_to_ranking(
+            0,
+            3,
+            &MissingJudgeFallback::Exclude,
+            false
+        ));
+        assert!(!ranked_under_fallback(0, 3, false));
     }
 }

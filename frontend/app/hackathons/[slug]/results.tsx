@@ -480,6 +480,10 @@ export function ResultsBoard({ contractId }: { contractId: string }) {
                             {decisions[place.decidedBy] ?? "on score"}
                           </span>
 
+                          {place.underFallback && (
+                            <span className="label text-ink-faint">ranked under fallback</span>
+                          )}
+
                           {place.paid && <span className="label text-verified">paid</span>}
                         </div>
 

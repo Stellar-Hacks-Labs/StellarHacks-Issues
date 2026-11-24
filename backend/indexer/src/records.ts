@@ -118,6 +118,8 @@ export interface ResultRow {
   judge_average: number;
   community: number;
   decided_by: number;
+  /** True when the placing used the missing-judge fallback. */
+  under_fallback: boolean;
 }
 
 export interface PaymentRow {
