@@ -7,6 +7,8 @@ import { proofFor, seal } from "./seal.js";
 import { contractOf, isRecord } from "./validate.js";
 import { keepBallot, keepScorecard, leaves, phaseOf } from "./store.js";
 import { acceptsSeal, isSealedInput } from "./tlock.js";
+import { recordAudit } from "./audit/index.js";
+import { auditRoute } from "./audit/routes.js";
 
 /**
  * What the sealed collection service answers, with no transport in it.
@@ -119,6 +121,7 @@ async function takeScorecard(raw: unknown): Promise<unknown | Failure> {
     return refuse(400, "that signature does not cover that scorecard leaf");
   }
 
+  await recordAudit(body.contract, "scorecard", "accepted", { team: body.team, judge: body.judge, leaf: body.leafHex });
   await keepScorecard({
     contract: body.contract,
     team: body.team,
@@ -179,6 +182,7 @@ async function takeBallot(raw: unknown): Promise<unknown | Failure> {
     return refuse(400, "that signature does not cover that ballot leaf");
   }
 
+  await recordAudit(body.contract, "ballot", "accepted", { voter: body.voter, leaf: body.leafHex });
   await keepBallot({
     contract: body.contract,
     voter: body.voter,
@@ -306,6 +310,9 @@ export async function route(asked: Asked): Promise<Answer> {
     asked.query.get("kind") === "ballots" ? "ballots" : "scorecards";
 
   try {
+    if (asked.method === "GET" && (asked.path === "/audit" || asked.path === "/audit/checkpoints")) {
+      return { status: 200, body: await auditRoute(asked.path, asked.query.get("contract") ?? "") };
+    }
     if (asked.method === "GET" && asked.path === "/root") {
       return settle(await rootOf(asked.query.get("contract") ?? "", kindOf()));
     }
