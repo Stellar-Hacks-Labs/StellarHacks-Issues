@@ -31,6 +31,15 @@ export interface Position {
 
 /** One contribution, as the wall of names reads it. */
 export interface Contribution {
+  /**
+   * Its position in the contract's own list, which is how a receipt cites it.
+   *
+   * The reader already walks that list by index and used to throw the index
+   * away, which left anything citing a contribution to reconstruct it from the
+   * order and the timestamps — a guess that two contributions in one ledger
+   * would get wrong. It is data, so it is kept.
+   */
+  index: number;
   sponsor: string;
   track: string;
   /**
@@ -241,6 +250,7 @@ async function sponsorship(contractId: string, index: number): Promise<Contribut
   const record = raw as Record<string, unknown>;
 
   return {
+    index,
     sponsor: String(record["sponsor"] ?? ""),
     track: String(record["track"] ?? ""),
     rank: Number(record["rank"] ?? 0),

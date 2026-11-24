@@ -52,6 +52,22 @@ export {
   type Tally,
 } from "./results.js";
 export { validateSubmission, type SubmissionProblem } from "./submission.js";
+export {
+  checkReceipt,
+  receiptFor,
+  totalsFor,
+  traceSponsor,
+  traceSponsorship,
+  type PayoutRecord,
+  type PrizePlace,
+  type ReceiptProblem,
+  type SponsorReceipt,
+  type SponsorTotals,
+  type SponsorshipRecord,
+  type SponsorshipTrace,
+  type TraceRoute,
+  type TracedLeg,
+} from "./sponsorship-trace.js";
 export { toHex, fromHex } from "./hex.js";
 export { spec } from "./spec.js";
 export type { Digest } from "./merkle.js";

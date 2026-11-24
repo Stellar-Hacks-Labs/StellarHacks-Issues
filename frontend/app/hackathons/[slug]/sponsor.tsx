@@ -35,6 +35,7 @@ import { titleOf } from "../../../lib/words";
 
 export function Sponsor({
   contractId,
+  slug,
   rules,
   phase,
   positions,
@@ -43,6 +44,8 @@ export function Sponsor({
   code,
 }: {
   contractId: string;
+  /** For the link to where every contribution ended up, which is its own page. */
+  slug: string;
   rules: Rules;
   phase: number | null;
   positions: Position[];
@@ -120,6 +123,20 @@ export function Sponsor({
 
       {contributions.length > 0 && (
         <Wall contributions={contributions} backers={backers} code={code} />
+      )}
+
+      {/* The wall says who gave; the page behind this link says where it went.
+          Separate because a wall is read while deciding to back an event and the
+          other is read afterwards, usually by somebody being shown it. */}
+      {contributions.length > 0 && (
+        <p className="text-[0.9375rem]">
+          <Link
+            href={`/hackathons/${slug}/sponsors`}
+            className="underline underline-offset-4 hover:text-ink"
+          >
+            Where every contribution went
+          </Link>
+        </p>
       )}
 
       <SponsorPanel

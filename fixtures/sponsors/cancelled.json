@@ -1,0 +1,67 @@
+{
+  "what": "A track that made no award, and a position whose prize was swept after the claim period expired.",
+  "why": "The two endings that are not a winner. A receipt that showed them as a payout, or as nothing at all, would be the one claim a sponsor would be right to distrust.",
+  "contract": "CCQ7LAZ7TH3DPWK3MCL2JFOM3JLMK6UKFTOMR2TERRXVLYBZ55LEHHNB",
+  "places": [
+    { "track": "research", "rank": 1, "worth": "1500" },
+    { "track": "research", "rank": 2, "worth": "500" }
+  ],
+  "contributions": [
+    {
+      "index": 0,
+      "sponsor": "GA3A3NY4VLTTUPJCJSTJ457KAOXKPZ3PQER4M2F5TQRFG5TTNEOBQZ3K",
+      "track": "research",
+      "rank": 1,
+      "amount": "600",
+      "fee": "30",
+      "at": 1763200000
+    },
+    {
+      "index": 1,
+      "sponsor": "GA3A3NY4VLTTUPJCJSTJ457KAOXKPZ3PQER4M2F5TQRFG5TTNEOBQZ3K",
+      "track": "research",
+      "rank": 2,
+      "amount": "100",
+      "fee": "5",
+      "at": 1763200600
+    }
+  ],
+  "payouts": [
+    {
+      "track": "research",
+      "rank": 1,
+      "recipient": "GCVAULTPOOLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAW",
+      "amount": "1500",
+      "kind": 2,
+      "ledger": 7100,
+      "txHash": "eeee5555eeee5555eeee5555eeee5555eeee5555eeee5555eeee5555eeee5555"
+    },
+    {
+      "track": "research",
+      "rank": 2,
+      "recipient": "GCVAULTPOOLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAW",
+      "amount": "500",
+      "kind": 1,
+      "ledger": 7200,
+      "txHash": "ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666"
+    }
+  ],
+  "expected": {
+    "traces": [
+      {
+        "index": 0,
+        "route": "returned",
+        "paidOut": "1500",
+        "txHashes": ["eeee5555eeee5555eeee5555eeee5555eeee5555eeee5555eeee5555eeee5555"]
+      },
+      {
+        "index": 1,
+        "route": "swept",
+        "paidOut": "500",
+        "txHashes": ["ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666ffff6666"]
+      }
+    ],
+    "sponsorRoutes": ["swept", "returned"],
+    "noteMentions": ["declared refund route", "declared surplus route"]
+  }
+}

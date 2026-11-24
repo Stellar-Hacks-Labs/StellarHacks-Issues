@@ -58,7 +58,7 @@ export default async function Hackathon({
 
       <Masthead hackathon={hackathon} />
 
-      <Tabs at={at} counts={{ projects, hackers }} />
+      <Tabs at={at} counts={{ projects, hackers }} slug={slug} />
 
       {at === "details" && <Details hackathon={hackathon} />}
 

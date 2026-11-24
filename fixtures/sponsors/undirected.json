@@ -1,0 +1,62 @@
+{
+  "what": "One contribution spread over a whole track, where one position has been paid and one has not.",
+  "why": "The case the trace must not invent. The contract recorded the track, the amount and the fee, not the split it used, so the trace reports the track's positions and says that a per position share cannot be reconstructed.",
+  "contract": "CCQ7LAZ7TH3DPWK3MCL2JFOM3JLMK6UKFTOMR2TERRXVLYBZ55LEHHNB",
+  "places": [
+    { "track": "tooling", "rank": 1, "worth": "2000" },
+    { "track": "tooling", "rank": 2, "worth": "800" },
+    { "track": "tooling", "rank": 3, "worth": "200" }
+  ],
+  "contributions": [
+    {
+      "index": 0,
+      "sponsor": "GA3A3NY4VLTTUPJCJSTJ457KAOXKPZ3PQER4M2F5TQRFG5TTNEOBQZ3K",
+      "track": "tooling",
+      "rank": 0,
+      "amount": "900",
+      "fee": "45",
+      "at": 1763100000
+    }
+  ],
+  "payouts": [
+    {
+      "track": "tooling",
+      "rank": 1,
+      "recipient": "GCWINNER1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAW",
+      "amount": "2000",
+      "kind": 0,
+      "ledger": 6100,
+      "txHash": "cccc3333cccc3333cccc3333cccc3333cccc3333cccc3333cccc3333cccc3333"
+    },
+    {
+      "track": "tooling",
+      "rank": 2,
+      "recipient": "GCWINNER2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAW",
+      "amount": "800",
+      "kind": 0,
+      "ledger": 6100,
+      "txHash": "dddd4444dddd4444dddd4444dddd4444dddd4444dddd4444dddd4444dddd4444"
+    }
+  ],
+  "expected": {
+    "directed": false,
+    "paid": "945",
+    "routes": ["paid", "unsettled"],
+    "legs": [
+      {
+        "rank": 1,
+        "route": "paid",
+        "paidOut": "2000",
+        "txHashes": ["cccc3333cccc3333cccc3333cccc3333cccc3333cccc3333cccc3333cccc3333"]
+      },
+      {
+        "rank": 2,
+        "route": "paid",
+        "paidOut": "800",
+        "txHashes": ["dddd4444dddd4444dddd4444dddd4444dddd4444dddd4444dddd4444dddd4444"]
+      },
+      { "rank": 3, "route": "unsettled", "paidOut": "0", "txHashes": [] }
+    ],
+    "noteMentions": ["not the split it used", "has not been paid yet"]
+  }
+}

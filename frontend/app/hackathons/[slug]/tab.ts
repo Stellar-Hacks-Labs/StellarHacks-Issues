@@ -12,6 +12,23 @@ export type Tab = "details" | "projects" | "results" | "hackers" | "find-team";
 
 /** Skills and open roles live at `/hackathons/[slug]/team-board`. This tab stays the request queue, because a request is not a listing. */
 
+/**
+ * Where every contribution went, which is a page rather than a tab.
+ *
+ * A tab is a different question about the event somebody is deciding whether to
+ * enter. "Were the funds distributed as announced" is a different reader
+ * entirely — a sponsor, often after the event is over, often sending the link
+ * to somebody who has never been here — and that reader should get a URL they
+ * can send rather than a query string on a page about entering.
+ *
+ * It still belongs in the tab bar: the bar is where this event's pages are
+ * listed, and a page nobody can find from the event is a page nobody reads.
+ */
+export const SPONSORS_LINK = {
+  label: "Sponsors",
+  href: (slug: string) => `/hackathons/${slug}/sponsors`,
+} as const;
+
 /* Results last, because it is the tab that is empty for most of an event and
    the one people return for after it. A tab that says "not yet" for three days
    should not sit between two that always have something in them. */

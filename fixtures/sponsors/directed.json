@@ -1,0 +1,118 @@
+{
+  "what": "Two sponsors backing named positions in a track that paid both of them.",
+  "why": "The exactly traceable case: a sponsor named a position, the position was paid, and the receipt can cite the transaction that paid it.",
+  "contract": "CCQ7LAZ7TH3DPWK3MCL2JFOM3JLMK6UKFTOMR2TERRXVLYBZ55LEHHNB",
+  "places": [
+    { "track": "ai", "rank": 1, "worth": "3000" },
+    { "track": "ai", "rank": 2, "worth": "1000" }
+  ],
+  "contributions": [
+    {
+      "index": 0,
+      "sponsor": "GA3A3NY4VLTTUPJCJSTJ457KAOXKPZ3PQER4M2F5TQRFG5TTNEOBQZ3K",
+      "track": "ai",
+      "rank": 1,
+      "amount": "1000",
+      "fee": "50",
+      "at": 1763000000
+    },
+    {
+      "index": 1,
+      "sponsor": "GA3A3NY4VLTTUPJCJSTJ457KAOXKPZ3PQER4M2F5TQRFG5TTNEOBQZ3K",
+      "track": "ai",
+      "rank": 2,
+      "amount": "500",
+      "fee": "25",
+      "at": 1763000600
+    },
+    {
+      "index": 2,
+      "sponsor": "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H",
+      "track": "ai",
+      "rank": 1,
+      "amount": "250",
+      "fee": "12",
+      "at": 1763001200
+    }
+  ],
+  "payouts": [
+    {
+      "track": "ai",
+      "rank": 1,
+      "recipient": "GCWINNER1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAW",
+      "amount": "3000",
+      "kind": 0,
+      "ledger": 5100,
+      "txHash": "aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111"
+    },
+    {
+      "track": "ai",
+      "rank": 2,
+      "recipient": "GCWINNER2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAW",
+      "amount": "1000",
+      "kind": 0,
+      "ledger": 5100,
+      "txHash": "bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"
+    }
+  ],
+  "expected": {
+    "perSponsor": [
+      {
+        "sponsor": "GA3A3NY4VLTTUPJCJSTJ457KAOXKPZ3PQER4M2F5TQRFG5TTNEOBQZ3K",
+        "contributions": 2,
+        "given": "1500",
+        "fees": "75",
+        "paid": "1575",
+        "routes": ["paid"],
+        "traces": [
+          {
+            "index": 1,
+            "directed": true,
+            "legs": [
+              {
+                "rank": 2,
+                "route": "paid",
+                "paidOut": "1000",
+                "txHashes": ["bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"]
+              }
+            ]
+          },
+          {
+            "index": 0,
+            "directed": true,
+            "legs": [
+              {
+                "rank": 1,
+                "route": "paid",
+                "paidOut": "3000",
+                "txHashes": ["aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "sponsor": "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H",
+        "contributions": 1,
+        "given": "250",
+        "fees": "12",
+        "paid": "262",
+        "routes": ["paid"],
+        "traces": [
+          {
+            "index": 2,
+            "directed": true,
+            "legs": [
+              {
+                "rank": 1,
+                "route": "paid",
+                "paidOut": "3000",
+                "txHashes": ["aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111"]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

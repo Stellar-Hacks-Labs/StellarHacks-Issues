@@ -4,7 +4,7 @@ import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 
 import { Measure } from "../../components/primitives";
-import { TABS, TAB_NAMES, type Tab } from "./tab";
+import { SPONSORS_LINK, TABS, TAB_NAMES, type Tab } from "./tab";
 
 /**
  * The four ways to read one hackathon.
@@ -23,10 +23,13 @@ import { TABS, TAB_NAMES, type Tab } from "./tab";
 export function Tabs({
   at,
   counts,
+  slug,
 }: {
   at: Tab;
   /** Shown beside a tab that has a number worth knowing before opening it. */
   counts: Partial<Record<Tab, number | null>>;
+  /** For the sibling pages in the bar, which are links rather than tabs. */
+  slug: string;
 }) {
   return (
     <div className="sticky top-16 z-[5] border-b border-rule bg-paper/85 backdrop-blur-xl">
@@ -41,6 +44,16 @@ export function Tabs({
           {TABS.map((tab) => (
             <One key={tab} tab={tab} chosen={tab === at} count={counts[tab] ?? null} />
           ))}
+
+          {/* A page of this event rather than a question about it, so it is a
+              link with no shared marker under it: nothing here is "current",
+              because following it leaves this page. */}
+          <Link
+            href={SPONSORS_LINK.href(slug)}
+            className="flex shrink-0 items-center gap-2 px-4 py-4 text-[1rem] text-ink-soft transition-colors duration-150 ease-settle hover:text-ink"
+          >
+            {SPONSORS_LINK.label}
+          </Link>
         </nav>
       </Measure>
     </div>

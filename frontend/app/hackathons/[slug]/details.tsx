@@ -92,6 +92,7 @@ export async function Details({ hackathon }: { hackathon: HackathonDetail }) {
                     {canSponsor(rules, hackathon.phase) && (
                       <Sponsor
                         contractId={hackathon.contract_id}
+                        slug={hackathon.slug}
                         rules={rules}
                         phase={hackathon.phase}
                         positions={positions}
