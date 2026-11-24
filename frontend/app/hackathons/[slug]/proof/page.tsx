@@ -10,6 +10,7 @@ import { decisions, resultsOf, tracksOf } from "../../../../lib/results";
 import { rootsOf } from "../../../../lib/roots";
 import { entriesOf } from "../../../../lib/submissions";
 import { titleOf } from "../../../../lib/words";
+import { AuditCheckpoint } from "./audit-checkpoint";
 
 /**
  * The whole receipt, on one page.
@@ -77,6 +78,7 @@ export default async function Proof({ params }: PageProps<"/hackathons/[slug]/pr
         </p>
 
         <div className="mt-10 grid gap-6">
+          <AuditCheckpoint contract={contract} />
           <Section title="The rules">
             <Line
               label="Rules digest"
