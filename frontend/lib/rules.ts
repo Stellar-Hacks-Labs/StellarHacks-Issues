@@ -70,7 +70,7 @@ export const VISIBILITY = ["Public", "Participants", "Restricted"] as const;
  * `contracts/hackathon-core/src/constitution/document.rs`, and the fixtures
  * both languages read are what catch it when it does not.
  */
-export const CONSTITUTION_VERSION = 7;
+export const CONSTITUTION_VERSION = 8;
 
 export interface Rules {
   /**
@@ -97,6 +97,10 @@ export interface Rules {
    */
   judgeAddresses: string[];
   judgeQuorum: number;
+  /**
+   * What happens when a project finishes short of the announced quorum.
+   */
+  missingJudgeFallback: MissingJudgeFallback;
   /**
    * The address the rules allow to publish the sealed roots.
    *
@@ -190,6 +194,11 @@ export type SurplusRoute =
   | { kind: "pro-rata" }
   | { kind: "return-to"; address: string }
   | { kind: "roll-forward"; address: string };
+
+export type MissingJudgeFallback =
+  | { kind: "exclude" }
+  | { kind: "rank-available"; floor: number }
+  | { kind: "reassign"; allowance: number };
 
 export async function rulesFor(contractId: string): Promise<Rules | null> {
   const rpcUrl = process.env["NEXT_PUBLIC_STELLAR_RPC_URL"];
@@ -304,6 +313,7 @@ function shape(raw: Record<string, unknown>): Rules {
       .map((assignment) => field(assignment, "judge"))
       .filter((address): address is string => typeof address === "string"),
     judgeQuorum: Number(raw["judge_quorum"] ?? 0),
+    missingJudgeFallback: fallbackOf(raw["missing_judge_fallback"]),
     sealer: sealerIn(raw["judging_mode"]),
     maxTeamSize: Number(teams["max_size"] ?? 0),
     multiTeamAllowed: teams["multi_team_allowed"] === true,
@@ -384,6 +394,29 @@ function surplusOf(raw: unknown): SurplusRoute {
   }
 
   return { kind: "pro-rata" };
+}
+
+function fallbackOf(raw: unknown): MissingJudgeFallback {
+  if (raw === null || raw === undefined) {
+    return { kind: "exclude" };
+  }
+
+  if (typeof raw === "string" || typeof raw === "number") {
+    return { kind: "exclude" };
+  }
+
+  const tagged = raw as { tag?: string; values?: unknown };
+  const values = Array.isArray(tagged.values) ? tagged.values : [];
+  const number = Number(values[0] ?? 0);
+
+  if (tagged.tag === "RankAvailable" && Number.isFinite(number) && number > 0) {
+    return { kind: "rank-available", floor: number };
+  }
+  if (tagged.tag === "Reassign" && Number.isFinite(number) && number > 0) {
+    return { kind: "reassign", allowance: number };
+  }
+
+  return { kind: "exclude" };
 }
 
 /**

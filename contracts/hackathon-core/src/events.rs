@@ -278,8 +278,24 @@ pub struct TrackRanked {
     #[topic]
     pub track: Symbol,
     /// How many projects made it into the ranking, which is not the same as how
-    /// many entered: screened out and short of quorum are both left out.
+    /// many entered: screened out and short of the fallback's floor are both
+    /// left out.
     pub ranked: u32,
+}
+
+/// A project was ranked under the missing-judge fallback rather than by
+/// meeting the announced quorum.
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ProjectRankedUnderFallback {
+    #[topic]
+    pub track: Symbol,
+    #[topic]
+    pub team: u32,
+    /// How many scorecards the project actually gathered.
+    pub score_count: u32,
+    /// The quorum the rules announced, which this project fell short of.
+    pub quorum: u32,
 }
 
 /// The result is closed and the money can move.
@@ -687,6 +703,22 @@ pub fn track_ranked(env: &Env, track: &Symbol, ranked: u32) {
     TrackRanked {
         track: track.clone(),
         ranked,
+    }
+    .publish(env);
+}
+
+pub fn project_ranked_under_fallback(
+    env: &Env,
+    track: &Symbol,
+    team: u32,
+    score_count: u32,
+    quorum: u32,
+) {
+    ProjectRankedUnderFallback {
+        track: track.clone(),
+        team,
+        score_count,
+        quorum,
     }
     .publish(env);
 }

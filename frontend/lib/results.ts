@@ -23,6 +23,7 @@ export interface Placement {
   community: number;
   /** Which step of the tie break chain settled this position. */
   decidedBy: number;
+  underFallback: boolean;
   /** Whether this position's prize has been handed over. */
   paid: boolean;
   members: string[];
@@ -117,6 +118,7 @@ export async function resultsOf(contractId: string, tracks: string[]): Promise<R
             judgeAverage: Number(placement["judge_average"] ?? 0),
             community: Number(placement["community"] ?? 0),
             decidedBy: Number(placement["decided_by"] ?? 0),
+            underFallback: placement["under_fallback"] === true,
             paid: paid === true,
             members: Array.isArray(members?.members) ? members.members.map(String) : [],
           };

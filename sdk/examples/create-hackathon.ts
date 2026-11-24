@@ -67,7 +67,7 @@ const judges = [Keypair.random(), Keypair.random(), Keypair.random()].map((judge
 }));
 
 const constitution: Constitution = {
-  version: 6,
+  version: 8,
   metadata_hash: Buffer.alloc(32, 7),
   // The native lumen wrapped as a contract token, so the vault holds something
   // real without an issuer to set up first.
@@ -78,6 +78,7 @@ const constitution: Constitution = {
   ],
   judges,
   judge_quorum: 3,
+  missing_judge_fallback: { tag: "Exclude", values: undefined },
   judging_mode: { tag: "Easy", values: [organizer] },
   // Ten points a wallet, spread across at most three projects. Frozen here
   // because a ballot size that could move after the lock would change how much

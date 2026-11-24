@@ -376,13 +376,14 @@ fn ranking_report(fixture: &crate::test::Fixture, teams: &[u32]) -> StdString {
     for placement in fixture.client.ranking(&symbol_short!("payments")).iter() {
         let _ = writeln!(
             out,
-            "placement rank={} team={} final_score={} judge_average={} community={} decided_by={}",
+            "placement rank={} team={} final_score={} judge_average={} community={} decided_by={} under_fallback={}",
             placement.rank,
             placement.team,
             placement.final_score,
             placement.judge_average,
             placement.community,
             placement.decided_by as u32,
+            u32::from(placement.under_fallback),
         );
     }
 
@@ -403,5 +404,107 @@ fn a_finished_ranking_matches_what_the_sdk_recomputes() {
     assert_eq!(
         ranking_report(&fixture, &teams).trim(),
         fixture!("ranking.txt")
+    );
+}
+
+
+#[test]
+fn a_fallback_ranking_matches_the_shared_fixture() {
+    use crate::constitution::MissingJudgeFallback;
+    use crate::hashing::scorecard_leaf;
+    use crate::scorecard::{CriterionScore, Scorecard};
+    use crate::test::Fixture;
+    use soroban_sdk::testutils::{Address as _, Ledger};
+    use soroban_sdk::{vec, BytesN, String as SorobanString, Vec};
+
+    let fixture = Fixture::funded_and_open_with(|constitution| {
+        constitution.missing_judge_fallback = MissingJudgeFallback::RankAvailable(2);
+    });
+    let env = fixture.env.clone();
+    let schedule = fixture.client.state().schedule;
+
+    env.ledger()
+        .set_timestamp(schedule.registration_opens_at + 3_600);
+
+    let mut teams = std::vec::Vec::new();
+    for digest in 1u8..=2 {
+        let captain = Address::generate(&env);
+        fixture.client.apply(&captain);
+        let organizer = fixture.organizer.clone();
+        fixture.client.approve_application(&organizer, &captain);
+
+        let team = fixture.client.create_team(&captain);
+        fixture.client.submit_project(
+            &captain,
+            &team,
+            &symbol_short!("payments"),
+            &BytesN::from_array(&env, &[digest; 32]),
+            &SorobanString::from_str(&env, "ipfs://cid"),
+        );
+        teams.push(team);
+    }
+
+    env.ledger()
+        .set_timestamp(schedule.submission_closes_at + 1);
+    fixture.client.advance_phase();
+    env.ledger().set_timestamp(schedule.screening_closes_at + 1);
+    fixture.client.advance_phase();
+
+    let mut cards = Vec::new(&env);
+    for index in 0..3u32 {
+        let judge = fixture
+            .client
+            .constitution()
+            .judges
+            .get(index)
+            .unwrap()
+            .judge;
+
+        for (position, &team) in teams.iter().enumerate() {
+            if position == 1 && index >= 2 {
+                continue;
+            }
+            let base = if position == 0 { 90 } else { 40 };
+            let novelty = if position == 0 { 80 } else { 30 };
+            cards.push_back(Scorecard {
+                judge: judge.clone(),
+                team,
+                scores: vec![
+                    &env,
+                    CriterionScore {
+                        criterion: symbol_short!("technical"),
+                        score: base,
+                    },
+                    CriterionScore {
+                        criterion: symbol_short!("novelty"),
+                        score: novelty,
+                    },
+                ],
+            });
+        }
+    }
+
+    let mut leaves = Vec::new(&env);
+    for index in 0..cards.len() {
+        leaves.push_back(scorecard_leaf(&env, &cards.get(index).unwrap()));
+    }
+    let (root, proofs) = build_tree(&env, &leaves);
+
+    env.ledger().set_timestamp(schedule.judging_closes_at);
+    fixture.client.publish_score_root(&root);
+    env.ledger().set_timestamp(schedule.judging_closes_at + 1);
+    fixture.client.advance_phase();
+
+    for index in 0..cards.len() {
+        fixture
+            .client
+            .reveal_score(&cards.get(index).unwrap(), &proofs.get(index).unwrap());
+    }
+
+    fixture.client.finalize_results();
+
+    assert_eq!(
+        ranking_report(&fixture, &teams).trim(),
+        fixture!("ranking-fallback.txt")
     );
 }

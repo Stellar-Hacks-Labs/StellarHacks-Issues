@@ -1,6 +1,8 @@
 import { DecidedBy } from "hackathon-core";
 import type { Constitution, Placement, VotePolicy } from "hackathon-core";
 
+import { admitsToRanking, rankedUnderFallback } from "./fallback.js";
+
 /**
  * The ranking, recomputed from chain data alone.
  *
@@ -123,6 +125,7 @@ export interface Candidate {
   community: number;
   submittedAt: bigint;
   criterionAverages: Map<string, number>;
+  underFallback: boolean;
 }
 
 /**
@@ -155,10 +158,10 @@ export function compare(
 /**
  * One track's ranking, derived the way the contract derives it.
  *
- * Entries that were ruled out, and entries that never reached the judge quorum,
- * are left out rather than placed last. Those are different situations from a
- * project that was judged and came last, and flattening them would be a claim
- * the data does not support.
+ * Entries that were ruled out, and entries that fall short of the frozen
+ * missing-judge fallback's floor, are left out rather than placed last. Those
+ * are different situations from a project that was judged and came last, and
+ * flattening them would be a claim the data does not support.
  */
 export function rankTrack(
   constitution: Constitution,
@@ -176,7 +179,14 @@ export function rankTrack(
     if (project.track !== track || !project.valid) {
       continue;
     }
-    if (quorumBinds && project.scores.count < constitution.judge_quorum) {
+    if (
+      !admitsToRanking(
+        project.scores.count,
+        constitution.judge_quorum,
+        constitution.missing_judge_fallback,
+        quorumBinds,
+      )
+    ) {
       continue;
     }
 
@@ -190,6 +200,11 @@ export function rankTrack(
       community,
       submittedAt: project.submittedAt,
       criterionAverages: tieBreakAverages(constitution, project),
+      underFallback: rankedUnderFallback(
+        project.scores.count,
+        constitution.judge_quorum,
+        quorumBinds,
+      ),
     };
 
     let at = ordered.length;
@@ -212,6 +227,7 @@ export function rankTrack(
       index === 0
         ? DecidedBy.Score
         : compare(ordered[index - 1]!, candidate, constitution.tie_break)[1],
+    under_fallback: candidate.underFallback,
   }));
 }
 

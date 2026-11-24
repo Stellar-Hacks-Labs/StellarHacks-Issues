@@ -31,7 +31,7 @@ const criteria = () => [
 
 export function canonicalConstitution(): Constitution {
   return {
-    version: 7,
+    version: 8,
     metadata_hash: Buffer.alloc(32, 7),
     prize_asset: PRIZE_ASSET,
     tracks: [
@@ -40,6 +40,7 @@ export function canonicalConstitution(): Constitution {
     ],
     judges: JUDGES.map((judge) => ({ judge, tracks: ["payments", "defi"] })),
     judge_quorum: 3,
+    missing_judge_fallback: { tag: "Exclude", values: undefined },
     judging_mode: { tag: "Easy", values: [SEALER] },
     vote: { judge_bps: 8_000, community_bps: 2_000, power: 10, max_choices: 3 },
     visibility: ProjectVisibility.Public,

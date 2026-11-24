@@ -1956,10 +1956,10 @@ impl HackathonCore {
     // order out itself, which is the difference between a result anybody can
     // reproduce and a result somebody announced.
     //
-    // Every project that was ruled out in screening, or that never reached the
-    // judge quorum, is left out of the ranking rather than placed last. Those
-    // are different situations from a project that was judged and came last,
-    // and the page shows which one applies.
+    // Every project that was ruled out in screening, or that fell short of the
+    // frozen missing-judge fallback's floor, is left out of the ranking rather
+    // than placed last. Those are different situations from a project that was
+    // judged and came last, and the page shows which one applies.
     //
     // A disqualification case still open holds this call back. Closing the
     // ranking around an entry whose standing is undecided would force the
@@ -2703,7 +2703,12 @@ impl HackathonCore {
             }
 
             let tally = storage::load_score_tally(env, team_id);
-            if quorum_binds && tally.count < constitution.judge_quorum {
+            if !crate::constitution::admits_to_ranking(
+                tally.count,
+                constitution.judge_quorum,
+                &constitution.missing_judge_fallback,
+                quorum_binds,
+            ) {
                 continue;
             }
 
@@ -2717,6 +2722,11 @@ impl HackathonCore {
                 community,
                 submitted_at: submission.submitted_at,
                 criterion_averages: Self::tie_break_averages(env, constitution, team_id),
+                under_fallback: crate::constitution::ranked_under_fallback(
+                    tally.count,
+                    constitution.judge_quorum,
+                    quorum_binds,
+                ),
             };
 
             // Insertion sort. Team counts are in the tens, and a sort a reader
@@ -2746,6 +2756,17 @@ impl HackathonCore {
                 results::compare(&above, &candidate, &constitution.tie_break).1
             };
 
+            if candidate.under_fallback {
+                let tally = storage::load_score_tally(env, candidate.team);
+                events::project_ranked_under_fallback(
+                    env,
+                    track,
+                    candidate.team,
+                    tally.count,
+                    constitution.judge_quorum,
+                );
+            }
+
             ranking.push_back(Placement {
                 team: candidate.team,
                 rank: index + 1,
@@ -2753,6 +2774,7 @@ impl HackathonCore {
                 judge_average: candidate.judge_average,
                 community: candidate.community,
                 decided_by,
+                under_fallback: candidate.under_fallback,
             });
         }
 

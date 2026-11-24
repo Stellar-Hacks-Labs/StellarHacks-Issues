@@ -93,6 +93,7 @@ async function ask(client: HackathonCore, event: ProjectedEvent): Promise<Answer
               judge_average: placement.judge_average,
               community: placement.community,
               decided_by: placement.decided_by,
+              under_fallback: placement.under_fallback,
             })),
           },
         };

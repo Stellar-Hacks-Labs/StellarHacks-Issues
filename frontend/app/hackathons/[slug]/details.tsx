@@ -10,7 +10,8 @@ import { canSponsor, contributionsOf, positionsOf, type Position } from "../../.
 import { codeFor } from "../../../lib/prizes";
 import { titleOf } from "../../../lib/words";
 import type { HackathonDetail } from "../../../lib/chain";
-import type { Rules } from "../../../lib/rules";
+import { explain } from "../../../lib/fallback";
+import type { MissingJudgeFallback, Rules } from "../../../lib/rules";
 
 /**
  * Everything about a hackathon that is not a person and not a build.
@@ -428,10 +429,16 @@ function Judging({ rules }: { rules: Rules }) {
         </div>
       ))}
 
+      <p className="mt-5 border-t border-rule pt-4 text-[0.9375rem] text-ink-soft">
+        A project needs {rules.judgeQuorum}{" "}
+        {rules.judgeQuorum === 1 ? "scorecard" : "scorecards"}.{" "}
+        {fallbackLine(rules.missingJudgeFallback)}
+      </p>
+
       {/* Only when the crowd has a share. "Judges 100%" is the answer to a
           question nobody asked about an event with no community vote. */}
       {rules.communityBps > 0 && (
-        <p className="mt-5 border-t border-rule pt-4 text-[0.9375rem] text-ink-soft">
+        <p className="mt-3 text-[0.9375rem] text-ink-soft">
           Judges decide {percent(rules.judgeBps)}, the crowd {percent(rules.communityBps)}.
         </p>
       )}
@@ -474,6 +481,10 @@ function percent(bps: number): string {
   const share = (bps / WEIGHT_TOTAL_BPS) * 100;
 
   return `${Number.isInteger(share) ? share : share.toFixed(1)}%`;
+}
+
+function fallbackLine(fallback: MissingJudgeFallback): string {
+  return explain(fallback);
 }
 
 /**

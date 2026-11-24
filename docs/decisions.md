@@ -575,6 +575,35 @@ undirected money, and directed sponsorships already refund from their own ledger
 
 ---
 
+## 27. A missing judge is answered by a frozen fallback policy
+
+**The gap was** that projects short of the announced quorum were silently left
+out of the ranking. The README recorded the fallback as unwritten; a team that
+did nothing wrong learned it only by reading who was missing from the board.
+
+**PRD said** extend the window once, call a pre-authorised backup judge, or mark
+the project as short of quorum. Extending the window and appointing a live
+substitute need entry points and mid-event authority this contract does not
+have, and inventing them here would reopen the lock.
+
+**Decided.** The constitution freezes a `MissingJudgeFallback` before the lock:
+`Exclude` (the historical default), `RankAvailable(floor)` (rank on the
+scorecards that arrived once the count clears a floor strictly below the
+quorum), or `Reassign(allowance)` (rank when the shortfall is at most that many
+judges). Ranking enforces the policy; a project admitted under it is marked
+`under_fallback` on its placement and announced with
+`ProjectRankedUnderFallback`. Validation failures reuse `ConstitutionInvalid`
+so the error enum stays inside the fifty-case cap.
+
+**Why.** Freezing the answer with the rules turns a black swan exclusion into a
+bargain participants can read. Ranking-time policies are the ones the contract
+can honour without inventing a mid-event judge swap. A silent judge still cannot
+reorder a fully scored project beyond what the policy states: the fully scored
+entry stays ahead on score, and the short one is either admitted under the floor
+or left out.
+
+---
+
 ## Still open
 
 - Team structure: maximum size, who sets the in team prize shares, whether one

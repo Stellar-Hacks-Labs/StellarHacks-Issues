@@ -62,6 +62,10 @@ describe("the constitution digest", () => {
     quorum.judge_quorum = 2;
     expect(toHex(hashConstitution(quorum))).not.toBe(original);
 
+    const fallback = canonicalConstitution();
+    fallback.missing_judge_fallback = { tag: "RankAvailable", values: [1] };
+    expect(toHex(hashConstitution(fallback))).not.toBe(original);
+
     const prize = canonicalConstitution();
     prize.prize_tiers[0]!.amount = 6_000n;
     expect(toHex(hashConstitution(prize))).not.toBe(original);

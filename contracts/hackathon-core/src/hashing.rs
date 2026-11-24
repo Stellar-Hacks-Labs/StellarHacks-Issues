@@ -181,6 +181,15 @@ mod test {
         assert_ne!(hash_constitution(&env, &changed), original, "judge_quorum");
 
         let mut changed = base.clone();
+        changed.missing_judge_fallback =
+            crate::constitution::MissingJudgeFallback::RankAvailable(1);
+        assert_ne!(
+            hash_constitution(&env, &changed),
+            original,
+            "missing_judge_fallback"
+        );
+
+        let mut changed = base.clone();
         changed.judging_mode = JudgingMode::Strict;
         assert_ne!(hash_constitution(&env, &changed), original, "judging_mode");
 

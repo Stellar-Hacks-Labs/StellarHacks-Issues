@@ -2,7 +2,7 @@ use soroban_sdk::{contracttype, Address, BytesN, Symbol, Vec};
 
 use crate::constitution::discretion::{DiscretionPolicy, RefundRoute};
 use crate::constitution::fee::PlatformFee;
-use crate::constitution::judging::JudgingMode;
+use crate::constitution::judging::{JudgingMode, MissingJudgeFallback};
 use crate::constitution::ranking::{validate_tie_break, TieBreakRule};
 use crate::constitution::registration::RegistrationPolicy;
 use crate::constitution::schedule::{ExtensionPolicy, Schedule};
@@ -17,14 +17,14 @@ use crate::submission::SubmissionRequirements;
 /// The format version of the constitution, so a reader can tell which shape it
 /// is looking at once this structure has changed a few times.
 //
-// Seven since undirected deposits beyond the prize table gained a declared
-// route out. The bump is not decoration: every digest in `fixtures/` moved
-// with it, and a client reading a version six document believes surplus has
-// nowhere to go. That was true then; a hackathon that freezes a
-// [`SponsorshipPolicy::surplus`](crate::constitution::SponsorshipPolicy) now
-// empties the vault at closure, and a reader who assumed otherwise would
-// under-report where leftover money went.
-pub const CONSTITUTION_VERSION: u32 = 7;
+// Eight since the missing-judge fallback became a frozen field. The bump is
+// not decoration: every digest in `fixtures/` moved with it, and a client
+// reading a version seven document believes shortfall is always exclusion.
+// That was true then; a hackathon that freezes a
+// [`MissingJudgeFallback`](crate::constitution::MissingJudgeFallback) now
+// ranks under the named policy, and a reader who assumed otherwise would
+// mis-report who belongs on the board.
+pub const CONSTITUTION_VERSION: u32 = 8;
 
 /// A judge and the tracks they are responsible for.
 #[contracttype]
@@ -62,6 +62,8 @@ pub struct Constitution {
     pub judges: Vec<JudgeAssignment>,
     /// Valid scorecards a project needs before the result can be finalized.
     pub judge_quorum: u32,
+    /// What happens when a project finishes short of that quorum.
+    pub missing_judge_fallback: MissingJudgeFallback,
     /// How scorecards are sealed until the reveal.
     pub judging_mode: JudgingMode,
     /// How the final score is split between judges and the crowd.
@@ -265,6 +267,8 @@ impl Constitution {
         if self.judge_quorum == 0 || self.judge_quorum > self.judge_count() {
             return Err(Error::ConstitutionInvalid);
         }
+
+        self.missing_judge_fallback.validate(self.judge_quorum)?;
 
         // A quorum the track can never reach would strand every project in it.
         // The check is skipped when scorecards carry no weight, because then
