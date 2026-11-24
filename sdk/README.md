@@ -14,12 +14,26 @@ npm install @stelhacks/sdk
 
 ## Fifteen minutes: check a result yourself
 
-The whole point is in `examples/verify-result.ts`, which runs against a finished
-hackathon and takes nobody's word for the outcome:
+The packaged entry point is `stelhacks-verify`. It reads public chain data (or
+an offline fixture), recomputes roots, tallies, ranking and payouts, and prints
+a structured report:
+
+```bash
+npm run build
+npx stelhacks-verify C<contract id> --network testnet
+npx stelhacks-verify --state ../fixtures/verify/reference-state.json \
+  --events ../fixtures/verify/reference-events.json
+```
+
+`examples/verify-result.ts` is the same idea as a short script against a
+finished hackathon:
 
 ```bash
 npx tsx examples/verify-result.ts C<contract id> payments
 ```
+
+See `docs/verifier.md` and `docs/verifier-checks.md` for usage and what each
+check proves.
 
 It does three things. First it fetches the rules and proves they are the rules
 that were locked:

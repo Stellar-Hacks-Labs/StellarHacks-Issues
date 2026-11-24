@@ -862,6 +862,8 @@ Deferred work is recorded rather than omitted.
 | `StelHacks-PRD.md` | Product requirements document, in Turkish |
 | `docs/decisions.md` | Twenty five entries recording each departure from the requirements document with its rationale. Where the two conflict, this document governs |
 | `docs/deployments.md` | Addresses, wasm hashes, the reference instance, and defects identified on the live network |
+| `docs/verifier.md` | Independent verifier CLI: usage, what it reads, exit codes |
+| `docs/verifier-checks.md` | What each named verifier check proves when it passes or fails |
 | Layer documents | `backend/`, `frontend/`, `sdk/` and `fixtures/`, and one per service |
 
 Three codebase conventions are stated here because they explain the structure a

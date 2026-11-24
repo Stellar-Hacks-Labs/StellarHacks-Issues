@@ -78,3 +78,5 @@ export type {
   VoteChoice,
   VotePolicy,
 } from "hackathon-core";
+
+export * as verify from "./verify/index.js";

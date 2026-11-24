@@ -4,6 +4,9 @@
   "description": "Read, verify and rebuild a StelHacks hackathon result from chain data alone",
   "type": "module",
   "license": "Apache-2.0",
+  "bin": {
+    "stelhacks-verify": "./dist/verify/cli.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -22,7 +25,8 @@
     "build": "npm run build --workspaces --if-present && tsc",
     "check": "tsc --noEmit && tsc --noEmit -p tsconfig.examples.json",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "verify": "node ./dist/verify/cli.js"
   },
   "dependencies": {
     "@stellar/stellar-sdk": "^14.5.0",
