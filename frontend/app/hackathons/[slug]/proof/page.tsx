@@ -11,6 +11,7 @@ import { rootsOf } from "../../../../lib/roots";
 import { entriesOf } from "../../../../lib/submissions";
 import { addressOf, explain, labelOf } from "../../../../lib/surplus";
 import { titleOf } from "../../../../lib/words";
+import { BundleDownload } from "./bundle-download";
 import { AuditCheckpoint } from "./audit-checkpoint";
 
 /**
@@ -226,6 +227,10 @@ export default async function Proof({ params }: PageProps<"/hackathons/[slug]/pr
                 </div>
               ))
             )}
+          </Section>
+
+          <Section title="Take it with you">
+            <BundleDownload contractId={contract} />
           </Section>
         </div>
       </Measure>

@@ -1,0 +1,42 @@
+{
+  "contractId": "CUNREVEALED0000000000000000000000000000000000000000000000",
+  "events": [
+    {
+      "contract_id": "CUNREVEALED0000000000000000000000000000000000000000000000",
+      "ledger": 50,
+      "event_index": 0,
+      "name": "RulesLocked",
+      "payload": {
+        "constitution_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      },
+      "occurred_at": "2026-03-01T00:00:00.000Z"
+    }
+  ],
+  "reads": [
+    {
+      "contract_id": "CUNREVEALED0000000000000000000000000000000000000000000000",
+      "ledger": 50,
+      "kind": "constitution",
+      "key": "",
+      "data": {
+        "version": 6
+      }
+    },
+    {
+      "contract_id": "CUNREVEALED0000000000000000000000000000000000000000000000",
+      "ledger": 60,
+      "kind": "sealed_scorecard",
+      "key": "1:GJUDGE",
+      "data": {
+        "ciphertext": "should-not-ship",
+        "tlock_round": 999,
+        "tlock_commitment": "ff",
+        "scores": [
+          1,
+          2,
+          3
+        ]
+      }
+    }
+  ]
+}
