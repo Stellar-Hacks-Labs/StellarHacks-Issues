@@ -22,6 +22,16 @@ import {
   type Inclusion,
 } from "../../../lib/judge";
 import { rememberCard, sealedCardsOf, type SealedCard } from "../../../lib/judged";
+import {
+  declarationsBy,
+  fromRows,
+  queueNotice,
+  withoutConflicts,
+  type Declaration,
+} from "../../../lib/conflicts";
+import { ConflictList } from "./conflict-list";
+import { Declare } from "./declare";
+import { DeclareConfirm } from "./declare-confirm";
 import { proveAddress } from "../../../lib/wallet";
 import { toHex } from "../../../lib/hex";
 import { AiReviewPanel } from "./ai-review";
@@ -61,6 +71,11 @@ export function JudgeConsole({ contractId }: { contractId: string }) {
   const [mode, setMode] = useState<"manual" | "ai">("manual");
   /* The projects the AI review sent here to be scored, or every one. */
   const [focus, setFocus] = useState<Set<number> | null>(null);
+  /* What this judge has declared a conflict with, and whether they have been
+     through the declaration step this visit. The declarations are the record;
+     the step is only what puts the question before the work. */
+  const [declared, setDeclared] = useState<Declaration[] | null>(null);
+  const [declaring, setDeclaring] = useState(true);
 
   const load = useCallback(async () => {
     const [found, tracks, at, frozen, drawn] = await Promise.all([
@@ -87,9 +102,36 @@ export function JudgeConsole({ contractId }: { contractId: string }) {
     setCards(drawn);
   }, [contractId]);
 
+  /* The judge's own declarations, read as the signed in judge so the policies
+     decide what comes back. Null until the first answer: an empty list and a
+     list that has not arrived mean different things to a queue that hides
+     projects, and showing the sheets before it lands would show a project the
+     judge has already set aside. */
+  const readDeclarations = useCallback(async () => {
+    try {
+      const answered = await fetch(`/api/conflicts?contract=${contractId}`);
+
+      if (!answered.ok) {
+        setDeclared([]);
+
+        return;
+      }
+
+      const said = (await answered.json()) as { declarations?: Record<string, unknown>[] };
+
+      setDeclared(fromRows(said.declarations ?? []).declarations);
+    } catch {
+      /* A declaration that cannot be read is not a declaration that does not
+         exist, but the sealer refuses the card either way, so the page carries
+         on rather than stopping a judge who declared nothing. */
+      setDeclared([]);
+    }
+  }, [contractId]);
+
   useEffect(() => {
     void load();
-  }, [load]);
+    void readDeclarations();
+  }, [load, readDeclarations]);
 
   /* What this judge already handed in, read back from their own browser. A
      sealed card cannot be asked about — that is what sealing it means — so a
@@ -101,6 +143,11 @@ export function JudgeConsole({ contractId }: { contractId: string }) {
   useEffect(() => {
     setHeld(address === null ? {} : sealedCardsOf(contractId, address));
   }, [contractId, address]);
+
+  /* Only this judge's own declarations bind this judge's queue. The route
+     returns whatever the policies allowed, which for an organizer reading their
+     own console would be everybody's. */
+  const mine = address === null ? [] : declarationsBy(address, declared ?? []);
 
   /*
     The wallet is not waited on.
@@ -123,7 +170,12 @@ export function JudgeConsole({ contractId }: { contractId: string }) {
     );
   }
 
-  const scoreable = entries.filter((entry) => !entry.invalid);
+  const valid = entries.filter((entry) => !entry.invalid);
+  /* A declared project leaves the queue rather than appearing disabled. The
+     sealer refuses its card whatever this page shows, so a row the judge cannot
+     use would only invite them to wonder whether the declaration registered. */
+  const queue = withoutConflicts(valid, mine);
+  const scoreable = queue.scoreable;
   const sealed = scoreable.filter((entry) => held[entry.team] !== undefined).length;
   const shown = focus === null ? scoreable : scoreable.filter((entry) => focus.has(entry.team));
 
@@ -179,11 +231,43 @@ export function JudgeConsole({ contractId }: { contractId: string }) {
         <Standing phase={phase}>The results are announced at the reveal.</Standing>
         {board}
       </div>
+    ) : declared === null ? (
+      <p className="label text-ink-faint">Reading your declarations</p>
+    ) : declaring ? (
+      <div className="space-y-8">
+        <Declare
+          contractId={contractId}
+          judge={address}
+          entries={valid}
+          cards={cards}
+          declared={mine}
+          onDeclared={(declaration) =>
+            setDeclared([
+              ...(declared ?? []).filter(
+                (one) => !(one.judge === declaration.judge && one.team === declaration.team),
+              ),
+              declaration,
+            ])
+          }
+        />
+
+        <DeclareConfirm declared={mine.length} onConfirm={() => setDeclaring(false)} />
+      </div>
     ) : (
       <div className="space-y-8">
+        {queueNotice(queue) !== null && (
+          <p className="max-w-[46rem] text-[0.9375rem] leading-relaxed text-ink-soft">
+            {queueNotice(queue)}
+          </p>
+        )}
+
+        <ConflictList declared={mine} cards={cards} />
+
         {scoreable.length === 0 ? (
           <p className="max-w-[38rem] text-[1rem] leading-relaxed text-ink-soft">
-            No projects to score.
+            {queue.setAside.length > 0
+              ? "You declared a conflict with every project here, so there is nothing for you to score."
+              : "No projects to score."}
           </p>
         ) : (
           <>

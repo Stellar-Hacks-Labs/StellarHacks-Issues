@@ -21,12 +21,17 @@ import { motion, useReducedMotion } from "framer-motion";
  * organizer back to the queue they left rather than to what is happening now.
  */
 
-export type View = "overview" | "applications" | "submissions" | "schedule" | "details";
+export type View = "overview" | "applications" | "submissions" | "conflicts" | "schedule" | "details";
 
 const NAMES: Record<View, string> = {
   overview: "Overview",
   applications: "Applications",
   submissions: "Submissions",
+  /* Beside the submissions rather than under the schedule: a declaration is
+     about who may score an entry, which is the same question the submissions
+     tab asks, and it is the organizer's only warning that a project is a card
+     short. */
+  conflicts: "Conflicts",
   schedule: "Schedule",
   details: "Details",
 };

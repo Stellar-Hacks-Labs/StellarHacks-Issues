@@ -550,6 +550,53 @@ voter reveal the half that suited them. `reveal_ballot` takes the list,
 `team_id` to `choices`. No ballot already sealed could be carried across: the
 total it was meant to place was never part of what its voter signed.
 
+## 26. A judge declares their own conflicts, and nothing guesses at them
+
+**The issue asked** for conflict declarations: judges declare, declarations are
+recorded with timestamps, conflicted scoring is prevented, and the declarations
+appear on the proof page.
+
+**Decided.** The declaration is the judge's own statement and the only input.
+The console asks before the scoresheets appear, the row's time is the database's
+`now()` rather than the client's, the sealed collection service refuses a
+scorecard from that judge for that project, and the proof page publishes every
+declaration from the reveal onwards.
+
+**Why nothing detects.** Automatic detection was the obvious missing half:
+shared repositories, shared employers, a social graph. It is out of scope and
+should stay there. A guess about somebody's relationships, published beside
+their name on a page whose whole argument is that nothing here needs to be taken
+on trust, would be worse than the gap it fills — and a judge cleared by the
+absence of a signal is a judge the product has vouched for without knowing
+anything.
+
+**Why the refusal lives in the sealer.** The console hides a declared project
+from the queue, which is a convenience; a card can arrive from anywhere. The
+service that builds the Merkle tree is the one place every card passes through,
+so that is where the declaration turns into a `409`. The contract still knows
+nothing about conflicts: it verifies an inclusion proof at the reveal, and a
+conflicted card that reached the tree would be counted. Keeping the refusal at
+the single gate in front of the tree is what makes that unreachable.
+
+**Why the public wait until phase five.** Before the reveal the scores are
+sealed and the panel is still working, and a public list of who declared what
+tells a team which judges are left to mark them. The wait is a policy against
+the phase the indexer recorded, so neither we nor the organizer can open the
+list early.
+
+**Why a declaration cannot be withdrawn.** No client role has a delete grant,
+and an update cannot move `declared_at` or change `judge`. A judge can correct
+the relationship and the note. The organizer cannot clear a declaration either,
+because an organizer who could clear one could clear the evidence of it; what
+they can do is reassign the project, which is what the Conflicts tab on the
+manage panel is for.
+
+**What it cost.** The proof page makes a weaker claim than a reader might want,
+and says so in the words on the page: these declarations were recorded before
+the scores opened and each one blocked that judge's card, which is not a check
+that every conflict was declared. Nobody can make the stronger claim, and
+pretending otherwise would be the one failure this feature exists to prevent.
+
 ---
 
 ## Still open

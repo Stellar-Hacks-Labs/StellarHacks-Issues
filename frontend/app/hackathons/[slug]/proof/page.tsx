@@ -10,6 +10,9 @@ import { decisions, resultsOf, tracksOf } from "../../../../lib/results";
 import { rootsOf } from "../../../../lib/roots";
 import { entriesOf } from "../../../../lib/submissions";
 import { titleOf } from "../../../../lib/words";
+import { fromRows } from "../../../../lib/conflicts";
+import { serverClient } from "../../../../lib/supabase/server";
+import { Conflicts } from "./conflicts";
 
 /**
  * The whole receipt, on one page.
@@ -43,12 +46,17 @@ export default async function Proof({ params }: PageProps<"/hackathons/[slug]/pr
   const contract = hackathon.contract_id;
   const tracks = await tracksOf(contract);
 
-  const [entries, cards, results, roots, hackers] = await Promise.all([
+  const [entries, cards, results, roots, hackers, declared] = await Promise.all([
     entriesOf(contract, false),
     cardsOf(contract),
     resultsOf(contract, tracks),
     rootsOf(contract),
     countHackers(contract),
+    /* Read with no session, like the rest of this page. The policy opens the
+       declarations to everybody from the reveal and to nobody before it, so a
+       visitor reading this page gets exactly what a visitor is allowed to
+       know, and the page never has to decide that for itself. */
+    declarationsOf(contract),
   ]);
 
   const rules = hackathon.rules;
@@ -183,6 +191,15 @@ export default async function Proof({ params }: PageProps<"/hackathons/[slug]/pr
             />
           </Section>
 
+          <Section title="Declared conflicts">
+            <Conflicts
+              phase={hackathon.phase}
+              declarations={declared.declarations}
+              cards={cards}
+              unreadable={declared.unreadable}
+            />
+          </Section>
+
           <Section title="The result">
             {ranked.length === 0 ? (
               <Empty>No ranking has been computed yet.</Empty>
@@ -222,6 +239,30 @@ export default async function Proof({ params }: PageProps<"/hackathons/[slug]/pr
 }
 
 /** One titled card, which is how every long page here is broken up. */
+/**
+ * The declarations for this event, as a visitor.
+ *
+ * No session and no service role: `conflict_declarations` is readable by
+ * anybody from the reveal onwards and by the judge or organizer before it, so
+ * reading it with the anonymous key is what makes this page's answer the same
+ * answer a stranger gets. A deployment with no database configured has no
+ * declarations to show rather than an error on a page about proof.
+ */
+async function declarationsOf(contract: string) {
+  const db = await serverClient();
+
+  if (db === null) {
+    return { declarations: [], unreadable: 0 };
+  }
+
+  const { data } = await db
+    .from("conflict_declarations")
+    .select("contract_id, judge, team_id, relationship, note, declared_at")
+    .eq("contract_id", contract);
+
+  return fromRows(data ?? []);
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Card>

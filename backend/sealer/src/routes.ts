@@ -4,7 +4,8 @@ import { settings } from "./config.js";
 import { core, sealer } from "./core.js";
 import { issue } from "./receipt.js";
 import { proofFor, seal } from "./seal.js";
-import { contractOf, isRecord } from "./validate.js";
+import { conflictRefusal, declaredConflict } from "./conflicts.js";
+import { contractOf, isRecord, isStellarAddress, isTeamId } from "./validate.js";
 import { keepBallot, keepScorecard, leaves, phaseOf } from "./store.js";
 import { acceptsSeal, isSealedInput } from "./tlock.js";
 
@@ -78,10 +79,8 @@ async function takeScorecard(raw: unknown): Promise<unknown | Failure> {
 
   if (
     contract === null ||
-    !Number.isInteger(team) ||
-    (team as number) < 1 ||
-    typeof judge !== "string" ||
-    !/^G[A-Z2-7]{55}$/.test(judge) ||
+    !isTeamId(team) ||
+    !isStellarAddress(judge) ||
     typeof leafHex !== "string" ||
     !/^[0-9a-f]{64}$/.test(leafHex) ||
     typeof signature !== "string" ||
@@ -103,6 +102,16 @@ async function takeScorecard(raw: unknown): Promise<unknown | Failure> {
 
   if (!(await acceptsSeal(body.contract, body.sealed))) {
     return refuse(400, "the card is not sealed to this hackathon's judging deadline");
+  }
+
+  // Before the signature rather than after it. A judge who declared a conflict
+  // and then scored anyway gets the same answer whether or not their wallet
+  // signed correctly, and the service never holds a card it has already
+  // decided it cannot count.
+  const conflict = await declaredConflict(body.contract, body.judge, body.team);
+
+  if (conflict !== null) {
+    return refuse(409, conflictRefusal(conflict));
   }
 
   const leaf = fromHex(body.leafHex);
@@ -143,8 +152,7 @@ async function takeBallot(raw: unknown): Promise<unknown | Failure> {
 
   if (
     contract === null ||
-    typeof voter !== "string" ||
-    !/^G[A-Z2-7]{55}$/.test(voter) ||
+    !isStellarAddress(voter) ||
     typeof leafHex !== "string" ||
     !/^[0-9a-f]{64}$/.test(leafHex) ||
     typeof signature !== "string" ||

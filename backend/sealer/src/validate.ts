@@ -19,6 +19,23 @@ export function contractOf(body: Record<string, unknown>): string | null {
   return typeof contract === "string" && /^C[A-Z2-7]{55}$/.test(contract) ? contract : null;
 }
 
+/**
+ * The two identities every sealed submission carries, named once.
+ *
+ * Both shapes were written out at each route, and the conflict rule needs the
+ * same two: a team the declaration is about and the judge it belongs to. Three
+ * copies of a regular expression is three places for one of them to drift, and
+ * the drift that matters here is silent — a check that is slightly wider lets
+ * through exactly the identity the rule was supposed to pin.
+ */
+export function isTeamId(value: unknown): value is number {
+  return Number.isInteger(value) && (value as number) >= 1;
+}
+
+export function isStellarAddress(value: unknown): value is string {
+  return typeof value === "string" && /^G[A-Z2-7]{55}$/.test(value);
+}
+
 export function isScorecard(value: unknown): value is Scorecard {
   if (!isRecord(value)) {
     return false;

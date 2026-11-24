@@ -154,6 +154,14 @@ function explain(said: string, status: number): string {
     return "You have already scored this project. A card cannot be replaced once it is sealed.";
   }
 
+  /* The service refuses this one whatever the page showed, because a card can
+     arrive from anywhere. The sentence names the way out — the organizer
+     reassigns the project — rather than only the refusal, since there is
+     nothing the judge can do about it themselves and nothing they should. */
+  if (said.includes("a conflict was declared for this project")) {
+    return "You declared a conflict with this project, so your scorecard for it cannot be counted. The organizer reassigns it.";
+  }
+
   if (status === 0 || said.length === 0) {
     return "The collection service did not answer. It may not be running.";
   }

@@ -18,6 +18,7 @@ import { applicantsOf, type Applicant } from "../../../lib/applications";
 import { entriesOf, type Entry } from "../../../lib/submissions";
 import { Details } from "./details";
 import { Schedule } from "./schedule";
+import { Conflicts } from "./conflicts";
 import { Panel, type View } from "./panel";
 import { Screening } from "./screening";
 import { rulesFor, type Rules } from "../../../lib/rules";
@@ -275,7 +276,9 @@ export function Console({
         onChange={setView}
       />
 
-      {view === "schedule" ? (
+      {view === "conflicts" ? (
+        <Conflicts contractId={contractId} judges={rules?.judges ?? 0} />
+      ) : view === "schedule" ? (
         <Schedule contractId={contractId} organizer={mine ? state.organizer : null} />
       ) : view === "details" ? (
         <Details contractId={contractId} userId={userId} mine={mine} />

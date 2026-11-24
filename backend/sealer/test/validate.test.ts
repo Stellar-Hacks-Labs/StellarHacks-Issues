@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import { fits } from "../src/rules.js";
-import { contractOf, isBallot, isRecord, isScorecard } from "../src/validate.js";
+import {
+  contractOf,
+  isBallot,
+  isRecord,
+  isScorecard,
+  isStellarAddress,
+  isTeamId,
+} from "../src/validate.js";
 
 /**
  * The edge of the service, where a body is a claim rather than a value.
@@ -167,5 +174,29 @@ describe("a ballot measured against the rules it was cast under", () => {
         rules,
       ),
     ).toBe(false);
+  });
+});
+
+describe("the two identities every submission carries", () => {
+  it("accepts a whole team number from one upwards and nothing else", () => {
+    expect(isTeamId(1)).toBe(true);
+    expect(isTeamId(42)).toBe(true);
+    /* Zero is the contract's "no team", and a fraction or a numeric string is a
+       client that built the body by hand. Each one would reach the conflict
+       rule and silently match nothing. */
+    expect(isTeamId(0)).toBe(false);
+    expect(isTeamId(-1)).toBe(false);
+    expect(isTeamId(1.5)).toBe(false);
+    expect(isTeamId("1")).toBe(false);
+  });
+
+  it("accepts a Stellar account address and not a contract one", () => {
+    expect(isStellarAddress(JUDGE)).toBe(true);
+    /* A contract address is the same length and the same alphabet, which is
+       why the check is on the whole shape rather than on the length. */
+    expect(isStellarAddress(CONTRACT)).toBe(false);
+    expect(isStellarAddress(JUDGE.toLowerCase())).toBe(false);
+    expect(isStellarAddress(`${JUDGE}X`)).toBe(false);
+    expect(isStellarAddress(null)).toBe(false);
   });
 });
