@@ -105,6 +105,23 @@ fn the_canonical_scorecard_reaches_the_leaf_both_languages_expect() {
     );
 }
 
+/// The digest a strict-mode judge posts. If this moved, every judge holding a
+/// commitment built before the change would find their disclose refused, with
+/// nothing to tell them why.
+#[test]
+fn the_canonical_scorecard_reaches_the_commitment_both_languages_expect() {
+    use crate::commitments::scorecard_commitment;
+    use soroban_sdk::BytesN;
+
+    let env = Env::default();
+    let salt = BytesN::from_array(&env, &[0x11u8; 16]);
+
+    assert_eq!(
+        hex(&scorecard_commitment(&env, &canonical_scorecard(&env), &salt).to_array()),
+        fixture!("scorecard-commitment.sha256")
+    );
+}
+
 #[test]
 fn the_canonical_ballot_reaches_the_leaf_both_languages_expect() {
     let env = Env::default();

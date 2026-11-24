@@ -848,7 +848,7 @@ Deferred work is recorded rather than omitted.
 
 | Item | State |
 |:--|:--|
-| Strict judging mode, in which judges commit and disclose on chain directly | Modelled, validated and hashed; no entry point implemented. The sealed mode is the default, and the strict mode is required only where the availability assumption of the collection service is unacceptable |
+| Strict judging mode, in which judges commit and disclose on chain directly | Implemented as `commit_scorecard` / `disclose_scorecard`. The sealed mode remains the default; see `docs/strict-judging.md` |
 | `RefundRoute::Depositors` as a declared route | Refused by validation rather than promised as a route the contract cannot walk. Cancellation is unaffected: recorded sponsor contributions are repaid in full from the sponsorship ledger. What is missing is proportional attribution for undirected deposits |
 | A pool exceeding the prize table | Resolved by decision 26: `SponsorshipPolicy.surplus` freezes a pro rata, return-to, or roll-forward route before the lock, and settlement empties the vault along it. Directed contributions remain unaffected |
 | Missing judge fallback | Quorum is enforced by excluding projects below quorum from the ranking; the fallback policy is unwritten |

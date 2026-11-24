@@ -92,6 +92,7 @@ describe("the events this build understands", () => {
     expect(names).toContain("DeadlineExtended");
     expect(names).toContain("DisqualificationResolved");
     expect(names).toContain("HackathonCancelled");
+    expect(names).toContain("ScorecardCommitted");
   });
 
   it("has no duplicate names", () => {

@@ -22,9 +22,11 @@ import {
   type Inclusion,
 } from "../../../lib/judge";
 import { rememberCard, sealedCardsOf, type SealedCard } from "../../../lib/judged";
+import { commitScorecard, discloseScorecard } from "../../../lib/strict";
 import { proveAddress } from "../../../lib/wallet";
 import { toHex } from "../../../lib/hex";
 import { AiReviewPanel } from "./ai-review";
+import { StrictPanel } from "./strict-panel";
 
 /**
  * Scoring, in one sitting and at no cost to the judge.
@@ -114,12 +116,67 @@ export function JudgeConsole({ contractId }: { contractId: string }) {
     return <p className="label text-ink-faint">Reading the contract</p>;
   }
 
-  if (!sealingConfigured()) {
+  /* Strict mode names no sealer: judges commit on chain themselves. Easy mode
+     still needs the collection service that holds the sealed cards. */
+  const strict = rules !== null && rules.sealer === null;
+
+  if (!strict && !sealingConfigured()) {
     return (
       <Standing phase={phase}>
         No collection service is configured for this deployment, so there is
         nowhere to hand a scorecard.
       </Standing>
+    );
+  }
+
+  if (strict) {
+    if (address === null) {
+      return (
+        <Standing phase={phase}>
+          Connect the wallet this hackathon named as a judge to commit and disclose
+          scorecards.
+        </Standing>
+      );
+    }
+
+    const scoreable = entries.filter((entry) => !entry.invalid);
+
+    return (
+      <div className="space-y-10">
+        {scoreable.map((entry) => {
+          const track = rubric.find((row) => row.track === entry.track);
+          const marks = (track?.criteria ?? []).map((criterion) => ({
+            criterion: criterion.id,
+            score: 0,
+          }));
+
+          return (
+            <div key={entry.team}>
+              <h2 className="text-[1.125rem]">{cards[entry.team]?.title ?? `Team ${entry.team}`}</h2>
+              <StrictPanel
+                phase={phase}
+                scorecard={{ judge: address, team: entry.team, scores: marks }}
+                onCommit={async (commitment) => {
+                  const outcome = await commitScorecard(
+                    contractId,
+                    { judge: address, team: entry.team, scores: marks },
+                    commitment,
+                  );
+                  if (!outcome.ok) {
+                    throw new Error(outcome.why);
+                  }
+                }}
+                onDisclose={async (card, salt) => {
+                  const outcome = await discloseScorecard(contractId, card, salt);
+                  if (!outcome.ok) {
+                    throw new Error(outcome.why);
+                  }
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
     );
   }
 

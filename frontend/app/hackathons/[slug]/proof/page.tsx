@@ -105,6 +105,15 @@ export default async function Proof({ params }: PageProps<"/hackathons/[slug]/pr
                 )}
                 <Line label="Judges" value={String(rules.judges)} plain />
                 <Line label="Scorecards a project needs" value={String(rules.judgeQuorum)} plain />
+                <Line
+                  label="Judging mode"
+                  value={
+                    rules.sealer === null
+                      ? "Strict — judges commit and disclose on chain"
+                      : `Easy — sealed by ${rules.sealer}`
+                  }
+                  plain
+                />
               </>
             )}
           </Section>

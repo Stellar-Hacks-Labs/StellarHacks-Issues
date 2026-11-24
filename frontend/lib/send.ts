@@ -262,6 +262,9 @@ const meanings: Record<number, string> = {
   41: "you have already applied",
   42: "your application has not been approved yet",
   44: "this submission is not eligible",
+  51: "this scorecard was already recorded",
+  53: "this hackathon is not running the judging mode that call belongs to",
+  57: "that disclosure does not open the commitment that was posted",
 };
 
 function readable(raw: string): string {

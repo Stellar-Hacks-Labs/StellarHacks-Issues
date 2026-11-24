@@ -1841,6 +1841,105 @@ impl HackathonCore {
         Ok(weighted)
     }
 
+    /// Posts one strict-mode commitment during the judging window.
+    //
+    // The judge signs for the digest themselves. Nothing about the marks
+    // reaches the chain yet: the salt that blinds the scorecard stays with
+    // the judge until the disclose. Only the address the constitution named
+    // for this project's track may call this, and only once per project, so a
+    // second commitment cannot replace the first after the judge has seen how
+    // the rest of the bench is leaning.
+    pub fn commit_scorecard(
+        env: Env,
+        judge: Address,
+        team: u32,
+        commitment: BytesN<32>,
+    ) -> Result<(), Error> {
+        judge.require_auth();
+
+        let constitution = storage::load_constitution(&env)?;
+        if constitution.judging_mode.sealer().is_some() {
+            return Err(Error::WrongJudgingMode);
+        }
+
+        let state = storage::load_state(&env)?;
+        if state.phase != Phase::Judging {
+            return Err(Error::WrongPhase);
+        }
+        if env.ledger().timestamp() > state.schedule.judging_closes_at {
+            return Err(Error::DeadlinePassed);
+        }
+
+        let submission = storage::load_submission(&env, team)?;
+        if !Self::may_judge(&env, &constitution, &judge, &submission.track) {
+            return Err(Error::NotJudge);
+        }
+        if storage::has_recused(&env, &judge, team) {
+            return Err(Error::JudgeRecused);
+        }
+        if storage::has_commitment(&env, team, &judge) {
+            return Err(Error::ScorecardAlreadyRecorded);
+        }
+
+        storage::save_commitment(&env, team, &judge, &commitment);
+        events::scorecard_committed(&env, &judge, team, &commitment);
+
+        Ok(())
+    }
+
+    /// Opens one strict-mode commitment after the judging window.
+    //
+    // Anyone may call this and it needs no signature, for the same reason a
+    // sealed reveal needs none: the commitment is the authorization. A
+    // scorecard that does not open the posted digest is refused and leaves
+    // state untouched; one that does was written by the judge it names before
+    // the window closed. The tally path is the same as [`Self::reveal_score`],
+    // so the ranking cannot disagree between the two modes on the same marks.
+    pub fn disclose_scorecard(
+        env: Env,
+        scorecard: Scorecard,
+        salt: BytesN<16>,
+    ) -> Result<u32, Error> {
+        let constitution = storage::load_constitution(&env)?;
+        if constitution.judging_mode.sealer().is_some() {
+            return Err(Error::WrongJudgingMode);
+        }
+
+        if storage::load_state(&env)?.phase != Phase::Reveal {
+            return Err(Error::WrongPhase);
+        }
+
+        let commitment = storage::load_commitment(&env, scorecard.team, &scorecard.judge)?;
+        if !crate::commitments::matches(&env, &scorecard, &salt, &commitment) {
+            return Err(Error::CommitmentMismatch);
+        }
+
+        if storage::has_score(&env, scorecard.team, &scorecard.judge) {
+            return Err(Error::ScorecardAlreadyRecorded);
+        }
+
+        let submission = storage::load_submission(&env, scorecard.team)?;
+        if !Self::may_judge(&env, &constitution, &scorecard.judge, &submission.track) {
+            return Err(Error::NotJudge);
+        }
+        if storage::has_recused(&env, &scorecard.judge, scorecard.team) {
+            return Err(Error::JudgeRecused);
+        }
+
+        let track = Self::rubric_of(&env, &constitution, &submission.track)?;
+        let weighted = scorecard.weighted_total(&track)?;
+
+        storage::save_score(&env, scorecard.team, &scorecard.judge, weighted);
+
+        for entry in scorecard.scores.iter() {
+            storage::bump_criterion_tally(&env, scorecard.team, &entry.criterion, entry.score);
+        }
+
+        events::score_revealed(&env, &scorecard.judge, scorecard.team, weighted);
+
+        Ok(weighted)
+    }
+
     /// Seals every community ballot behind one digest.
     //
     // The same address that seals the scorecards seals the ballots, and for
@@ -2810,6 +2909,11 @@ impl HackathonCore {
     /// The digest sealing the scorecards.
     pub fn score_root(env: Env) -> Result<BytesN<32>, Error> {
         storage::load_score_root(&env)
+    }
+
+    /// One judge's strict-mode commitment for one project.
+    pub fn commitment(env: Env, team_id: u32, judge: Address) -> Result<BytesN<32>, Error> {
+        storage::load_commitment(&env, team_id, &judge)
     }
 
     /// One judge's weighted total for one project, once revealed.
