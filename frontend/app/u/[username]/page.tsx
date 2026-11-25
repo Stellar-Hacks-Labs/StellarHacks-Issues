@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { ButtonLink, Measure } from "../../components/primitives";
+import { ExportCredentials } from "./export-credentials";
 import { Joined } from "../../account/joined";
 import { Mark, type Where } from "../../components/marks";
 import { currentUser } from "../../../lib/supabase/server";
@@ -123,6 +124,18 @@ export default async function PublicProfile({ params }: PageProps<"/u/[username]
           <Panel title="Hackathons entered">
             <Joined />
           </Panel>
+        )}
+
+        {/* Only on your own profile, and under what it is about: the export is
+            an action on the history above it, not another fact about the
+            person. A visitor reading somebody else's profile has nothing to
+            export and is not offered a button that would fail. */}
+        {mine && (
+          <div className="mt-6">
+            <Panel title="Credentials">
+              <ExportCredentials username={profile.username} />
+            </Panel>
+          </div>
         )}
       </Measure>
     

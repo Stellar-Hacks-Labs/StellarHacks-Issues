@@ -52,6 +52,34 @@ export {
   type Tally,
 } from "./results.js";
 export { validateSubmission, type SubmissionProblem } from "./submission.js";
+export {
+  CREDENTIAL_DOMAIN,
+  CREDENTIAL_VERSION,
+  canonicalCredential,
+  canonicalize as canonicalizeCredential,
+  changedFields,
+  coverageOf,
+  credentialDigest,
+  credentialId,
+  payloadOf,
+  problemsAgainstEvidence,
+  problemsWithFormat,
+  verifyCredential,
+  verifySignature,
+  type Credential,
+  type CredentialClaim,
+  type CredentialEvidence,
+  type CredentialIssuer,
+  type CredentialPayload,
+  type CredentialReport,
+  type CredentialRole,
+  type CredentialSubject,
+  type EvidenceProblem,
+  type FormatProblem,
+  type ObservedEvent,
+  type ParticipationClaim,
+  type PlacementClaim,
+} from "./credentials/index.js";
 export { toHex, fromHex } from "./hex.js";
 export { spec } from "./spec.js";
 export type { Digest } from "./merkle.js";
